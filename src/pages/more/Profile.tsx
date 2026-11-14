@@ -9,6 +9,7 @@ import { EmojiPicker } from '@/components/ui/EmojiPicker'
 import { Field } from '@/components/ui/Field'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/auth/AuthProvider'
+import { useEncryption } from '@/features/encryption/EncryptionProvider'
 import { useCurrentFamily } from '@/family/FamilyProvider'
 import { friendlyError } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
@@ -75,6 +76,9 @@ export default function Profile() {
 
 function ChangePassword() {
   const toast = useToast()
+  const { user } = useAuth()
+  const { changePassword } = useEncryption()
+  const [current, setCurrent] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -83,19 +87,31 @@ function ChangePassword() {
     e.preventDefault()
     const parsed = passwordSchema.safeParse(password)
     if (!parsed.success) return setError(parsed.error.issues[0].message)
+    if (!current) return setError('Enter your current password')
     setBusy(true)
-    const { error: err } = await supabase.auth.updateUser({ password: parsed.data })
-    setBusy(false)
-    if (err) return setError(friendlyError(err))
-    setError(null)
-    setPassword('')
-    toast('Password changed')
+    try {
+      // Check the current password, then change it, then re-lock the encryption key.
+      const check = await supabase.auth.signInWithPassword({ email: user!.email!, password: current })
+      if (check.error) throw new Error('Your current password isn’t right')
+      const { error: err } = await supabase.auth.updateUser({ password: parsed.data })
+      if (err) throw err
+      await changePassword(current, parsed.data)
+      setError(null)
+      setCurrent('')
+      setPassword('')
+      toast('Password changed')
+    } catch (err) {
+      setError(friendlyError(err))
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
     <form onSubmit={submit} noValidate className="mt-5">
       <Card className="flex flex-col gap-4 p-5">
         <h2 className="text-lg font-bold">Change password</h2>
+        <Field label="Current password" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
         <Field label="New password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} error={error} />
         <Button type="submit" variant="secondary" loading={busy}>
           Change password

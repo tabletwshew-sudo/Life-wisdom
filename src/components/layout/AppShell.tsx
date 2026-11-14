@@ -3,6 +3,7 @@ import { Bell as BellIcon, WifiOff } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
 import { useEventRealtime } from '@/features/calendar/api'
+import { EncryptionBanner } from '@/features/encryption/EncryptionBanner'
 import { useFoodRealtime } from '@/features/food/api'
 import { UnreadPill } from '@/features/notifications/Bell'
 import { NotificationListener } from '@/features/notifications/NotificationListener'
@@ -79,6 +80,7 @@ export function AppShell() {
             <WifiOff className="size-4" aria-hidden /> You’re offline. Changes will need a connection.
           </div>
         )}
+        <EncryptionBanner />
         <main
           id="main"
           className="mx-auto w-full max-w-5xl flex-1 px-4 pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-[calc(6rem+env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] md:px-8 md:pt-8 md:pb-10"

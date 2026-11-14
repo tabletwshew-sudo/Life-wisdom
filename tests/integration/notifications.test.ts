@@ -9,7 +9,7 @@ let mum: TestUser
 let kid: TestUser
 let other: TestUser
 let famA: { id: string; code: string }
-let famB: { id: string; code: string }
+let _famB: { id: string; code: string }
 let today: string
 const admin = () => adminClient()
 
@@ -29,7 +29,7 @@ async function notificationsFor(u: TestUser, kind?: string) {
 beforeAll(async () => {
   ;[mum, kid, other] = await Promise.all([createUser('Mum'), createUser('Kid'), createUser('Other')])
   famA = await createFamily(mum, 'Family A')
-  famB = await createFamily(other, 'Family B')
+  _famB = await createFamily(other, 'Family B')
   await kid.client.rpc('join_family', { p_code: famA.code })
   today = (await mum.client.rpc('family_today', { fid: famA.id })).data as string
 })
@@ -105,14 +105,14 @@ describe('notification privacy', () => {
 })
 
 describe('scheduled reminders', () => {
-  let fish: string
+  let _fish: string
   beforeAll(async () => {
     const { data } = await mum.client.rpc('create_task', {
       p_family: famA.id,
       p_data: { title: 'Feed the fish', emoji: '🐟', repeat: 'daily', start_date: today, due_time: '07:30', reminder_minutes: 10 } as never,
       p_assignees: [kid.id],
     })
-    fish = data as string
+    _fish = data as string
   })
 
   it('sends a chore reminder at the right minute, once', async () => {

@@ -85,7 +85,7 @@ export default function More() {
           <SettingsGroup title="App">
             <SettingsRow to="/more/install" icon={<Download className="size-5" />} iconBg="bg-[#7B61FF]" label="Install on your phone" />
             <SettingsRow to="/more/notifications" icon={<Bell className="size-5" />} iconBg="bg-[#E5446D]" label="Notifications" />
-            <SettingsRow icon={<KeyRound className="size-5" />} iconBg="bg-[#1B998B]" label="Encryption" badge="Phase 6" />
+            <SettingsRow to="/more/encryption" icon={<KeyRound className="size-5" />} iconBg="bg-[#1B998B]" label="Encryption" detail={family.encryption_enabled ? "On" : "Off"} />
             <SettingsRow to="/more/privacy" icon={<Shield className="size-5" />} iconBg="bg-[#56B4E9]" label="Privacy & your data" />
             <SettingsRow to="/more/profile" icon={<Palette className="size-5" />} iconBg="bg-[#D55E00]" label="Profile, emoji & colour" />
           </SettingsGroup>

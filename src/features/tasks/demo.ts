@@ -16,7 +16,7 @@ export async function addDemoTasks(familyId: string, members: Member[], categori
     { data: { title: 'Pick up clothes', emoji: '👕', category_id: cat('Bedroom'), repeat: 'weekdays', repeat_days: [1, 2, 3, 4, 5] }, assignees: everyone },
     { data: { title: 'Put the dishwasher on', emoji: '🫧', category_id: cat('Kitchen'), repeat: 'daily', due_time: '20:00', completion_mode: 'any' }, assignees: everyone },
     { data: { title: 'Feed the pet', emoji: '🐶', category_id: cat('Pets'), repeat: 'daily', due_time: '07:30', points: 2 }, assignees: [second] },
-    { data: { title: 'Take out the bins', emoji: '🗑️', category_id: cat('Outdoors'), repeat: 'weekly', points: 3, notes: 'Green bin and recycling' }, assignees: [] },
+    { data: { title: 'Take out the bins', emoji: '🗑️', category_id: cat('Outdoors'), repeat: 'weekly', points: 3 }, assignees: [] },
   ]
   for (const t of demo) {
     const { error } = await supabase.rpc('create_task', {

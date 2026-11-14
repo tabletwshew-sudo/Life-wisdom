@@ -82,7 +82,7 @@ export function IdeasTab() {
                         <ExternalLink className="size-3.5 shrink-0" aria-hidden /> {host(r.source_url)}
                       </>
                     ) : (
-                      r.notes.slice(0, 60) || `${r.ingredients.length} ingredients`
+                      r.notes.startsWith('enc:') ? '🔒 Private note' : r.notes.slice(0, 60) || `${r.ingredients.length} ingredients`
                     )}
                   </span>
                 </span>

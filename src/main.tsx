@@ -9,6 +9,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { AuthProvider } from './auth/AuthProvider'
 import { UpdatePrompt } from './components/layout/UpdatePrompt'
 import { ToastProvider } from './components/ui/Toast'
+import { EncryptionProvider } from './features/encryption/EncryptionProvider'
 import { FamilyProvider } from './family/FamilyProvider'
 import './index.css'
 import { isConfigured } from './lib/env'
@@ -30,13 +31,27 @@ const queryClient = new QueryClient({
 // It is cleared on sign-out (see AuthProvider).
 const persister = createSyncStoragePersister({ storage: window.localStorage, key: 'fh-cache' })
 
+/** Only save data that survives JSON (no Map/Set/class instances), so a reload can't restore broken data. */
+function jsonSafe(v: unknown, depth = 0): boolean {
+  if (v === null || typeof v !== 'object') return typeof v !== 'function' && typeof v !== 'bigint'
+  if (depth > 6) return true
+  if (Array.isArray(v)) return v.every((x) => jsonSafe(x, depth + 1))
+  if (Object.getPrototypeOf(v) !== Object.prototype) return false
+  return Object.values(v).every((x) => jsonSafe(x, depth + 1))
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
     {isConfigured ? (
       <PersistQueryClientProvider
         client={queryClient}
-        persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 * 7, buster: __APP_VERSION__ }}
+        persistOptions={{
+          persister,
+          maxAge: 1000 * 60 * 60 * 24 * 7,
+          buster: __APP_VERSION__,
+          dehydrateOptions: { shouldDehydrateQuery: (q) => q.state.status === 'success' && jsonSafe(q.state.data) },
+        }}
         // Show saved data instantly, then refresh it from the server.
         onSuccess={() => queryClient.invalidateQueries()}
       >
@@ -44,8 +59,10 @@ createRoot(document.getElementById('root')!).render(
           <ToastProvider>
             <AuthProvider>
               <FamilyProvider>
-                <UpdatePrompt />
-                <App />
+                <EncryptionProvider>
+                  <UpdatePrompt />
+                  <App />
+                </EncryptionProvider>
               </FamilyProvider>
             </AuthProvider>
           </ToastProvider>

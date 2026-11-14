@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { friendlyError } from '@/lib/errors'
+import { prepareKeys } from '@/features/encryption/keys'
 import { supabase } from '@/lib/supabase'
 import { fieldErrors, signInSchema } from '@/lib/validation'
 import { AuthLayout, FormError, getPendingInvite } from './AuthLayout'
@@ -24,9 +25,15 @@ export default function SignIn() {
     if (!parsed.success) return setErrors(fieldErrors(parsed.error))
     setErrors({})
     setBusy(true)
-    const { error } = await supabase.auth.signInWithPassword(parsed.data)
+    const { data, error } = await supabase.auth.signInWithPassword(parsed.data)
+    if (error) {
+      setBusy(false)
+      return setFormError(friendlyError(error))
+    }
+    // Unlock (or create) this person's encryption key on this device. The
+    // password is used here once and never stored.
+    await prepareKeys(data.user.id, parsed.data.password).catch((e) => console.warn('Could not prepare encryption keys:', e))
     setBusy(false)
-    if (error) return setFormError(friendlyError(error))
     const next = (location.state as { from?: string } | null)?.from
     navigate(next && next.startsWith('/') ? next : '/', { replace: true })
   }

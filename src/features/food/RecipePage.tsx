@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { Secret } from '@/features/encryption/Secret'
 import { ArrowLeft, CalendarPlus, Clock, ExternalLink, Pencil, ShoppingCart, Star, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -184,7 +185,7 @@ export default function RecipePage() {
       {recipe.notes && (
         <section className="mt-6">
           <h2 className="mb-2 text-xl font-bold">Notes</h2>
-          <p className="whitespace-pre-wrap">{recipe.notes.startsWith('enc:') ? '🔒 Encrypted' : recipe.notes}</p>
+          <Secret field="recipes.notes" value={recipe.notes} className="block whitespace-pre-wrap" />
         </section>
       )}
       {creator && <p className="mt-6 text-sm text-ink-3">Added by {creator.displayName}</p>}

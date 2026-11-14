@@ -205,6 +205,32 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"family_keys": {
+                  Row: {
+                    "created_at": string,"family_id": string,"user_id": string,"wrapped_by": string | null,"wrapped_key": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"family_id": string,"user_id": string,"wrapped_by"?: string | null,"wrapped_key": string
+                  }
+                  Update: {
+                    "created_at"?: string,"family_id"?: string,"user_id"?: string,"wrapped_by"?: string | null,"wrapped_key"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "family_keys_family_id_user_id_fkey"
+      columns: ["family_id","user_id"]
+isOneToOne: true
+      referencedRelation: "family_members"
+      referencedColumns: ["family_id","user_id"]
+    },{
+      foreignKeyName: "family_keys_wrapped_by_fkey"
+      columns: ["wrapped_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"family_members": {
                   Row: {
                     "colour": string,"family_id": string,"joined_at": string,"role": Database["public"]['Enums']["family_role"],"user_id": string
@@ -228,6 +254,32 @@ isOneToOne: false
       columns: ["user_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"family_recovery": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"family_id": string,"iterations": number,"iv": string,"salt": string,"wrapped_key": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"family_id": string,"iterations": number,"iv": string,"salt": string,"wrapped_key": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"family_id"?: string,"iterations"?: number,"iv"?: string,"salt"?: string,"wrapped_key"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "family_recovery_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "family_recovery_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: true
+      referencedRelation: "families"
       referencedColumns: ["id"]
     }
                   ]
@@ -590,6 +642,46 @@ isOneToOne: false
       columns: ["family_id"]
 isOneToOne: false
       referencedRelation: "families"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"user_private_keys": {
+                  Row: {
+                    "created_at": string,"iterations": number,"iv": string,"salt": string,"user_id": string,"wrapped_private_key": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"iterations": number,"iv": string,"salt": string,"user_id": string,"wrapped_private_key": string
+                  }
+                  Update: {
+                    "created_at"?: string,"iterations"?: number,"iv"?: string,"salt"?: string,"user_id"?: string,"wrapped_private_key"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "user_private_keys_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: true
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"user_public_keys": {
+                  Row: {
+                    "created_at": string,"public_key": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"public_key": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"public_key"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "user_public_keys_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: true
+      referencedRelation: "profiles"
       referencedColumns: ["id"]
     }
                   ]

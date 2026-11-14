@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useToast } from '@/components/ui/Toast'
+import { useEncryption } from '@/features/encryption/EncryptionProvider'
 import { useCurrentFamily } from '@/family/FamilyProvider'
 import { deleteFamilyPhotos, exportFamilyData } from '@/lib/exportData'
 import { friendlyError } from '@/lib/errors'
@@ -12,6 +13,7 @@ import { supabase } from '@/lib/supabase'
 
 export default function Privacy() {
   const { family, isAdmin, refresh } = useCurrentFamily()
+  const { decrypt } = useEncryption()
   const toast = useToast()
   const navigate = useNavigate()
   const [busy, setBusy] = useState<'export' | 'delete' | null>(null)
@@ -19,7 +21,7 @@ export default function Privacy() {
   async function doExport() {
     setBusy('export')
     try {
-      const data = await exportFamilyData(family.id)
+      const data = await exportFamilyData(family.id, decrypt)
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -60,8 +62,9 @@ export default function Privacy() {
           to anyone else. Automated tests check this.
         </Info>
         <Info icon={<Lock className="size-6" />} title="How it’s protected">
-          All traffic uses HTTPS (encrypted in transit). Supabase encrypts the database and backups on disk with AES-256 (encrypted at rest). In
-          Phase 6 you can also turn on end-to-end encryption for notes and locations, so not even the server can read them.
+          All traffic uses HTTPS (encrypted in transit). Supabase encrypts the database, file storage and backups on disk with AES-256 (encrypted at
+          rest). Admins can also turn on end-to-end encryption (More → Encryption) so notes and locations are encrypted on your device and not even the
+          server can read them.
         </Info>
         <Info icon={<Server className="size-6" />} title="Where it lives">
           In your own free Supabase project, in the region you chose when creating it. Nothing is sold or shared, and there are no ads or trackers.

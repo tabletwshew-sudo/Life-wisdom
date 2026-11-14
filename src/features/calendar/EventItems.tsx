@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { Secret } from '@/features/encryption/Secret'
 import { MapPin, Repeat as RepeatIcon, Sparkles } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { useCurrentFamily } from '@/family/FamilyProvider'
@@ -115,10 +116,10 @@ export function EventRow({
             {type && <span>{type.name}</span>}
             {multi && <span>Day {daysBetween(o.start, day) + 1} of {daysBetween(o.start, o.end) + 1}</span>}
             {e.repeat !== 'once' && <RepeatIcon className="size-3.5" aria-label="Repeats" />}
-            {e.location && !e.location.startsWith('enc:') && (
+            {e.location && (
               <span className="inline-flex min-w-0 items-center gap-1">
                 <MapPin className="size-3.5 shrink-0" aria-hidden />
-                <span className="truncate">{e.location}</span>
+                <Secret field="events.location" value={e.location} className="truncate" />
               </span>
             )}
           </span>

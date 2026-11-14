@@ -2,9 +2,15 @@
 
 A free family organiser for chores, a shared calendar, meals and shopping. It works in any web browser, and you can install it on an iPhone from Safari with **Add to Home Screen**. You don't need an App Store listing or a paid Apple Developer account.
 
-> **Build status:** Phases 1–5 of 6 are finished: sign-in, families and invites, the installable app, **chores**
-> (repeating tasks, ticks, crosses, NEW badges, points and streaks), the **shared calendar**, **food & drink** (recipes, meal planner,
-> shopping list, ideas) and **notifications** (notification centre, reminders, push on iPhone). Encryption arrives in phase 6.
+**What's inside:**
+- **Families:** sign-in, families and invites, with admin and member roles.
+- **Chores:** they repeat, and show ✅ when done, ❌ when missed, ✨ NEW, plus points and streaks.
+- **A shared calendar** with day, week, month and year views.
+- **Food & drink:** a recipe book, meal planner, live shopping list and ideas.
+- **Notifications:** reminders, push on iPhone, and a notification centre.
+- **Privacy:** optional end-to-end encryption for private notes.
+
+All of it runs on free plans.
 
 ---
 
@@ -44,6 +50,7 @@ You don't need to install anything on your computer to get it running.
    | 3 | `20261114000300_events.sql` | Calendar events, event types, attendees |
    | 4 | `20261114000400_food.sql` | Recipes, meal plans, shopping list, private photo storage |
    | 5 | `20261114000500_notifications.sql` | Notifications, reminders, push devices |
+   | 6 | `20261114000600_encryption.sql` | Optional end-to-end encryption keys |
 
 > Later phases add more files. Each time you update, run only the new file(s), in order. Running a file twice is safe.
 
@@ -105,6 +112,9 @@ Android, Windows and Mac: in Chrome or Edge, use the install icon in the address
 5. Choose what Members are allowed to add in **More** → **Family settings**.
 
 Tap **Make a new code** at any time to stop the old link working.
+
+### Want to try it before inviting anyone?
+An admin can go to **More** → **Family settings** → **Load demo data**. That adds example chores, events (a birthday, football practice, a dentist trip, a film night), recipes and drinks, a few planned dinners and a shopping list. It only fills empty sections, so it won't touch your own data. Delete the examples whenever you like.
 
 ## Using chores (Tasks)
 
@@ -211,6 +221,28 @@ To stop all reminders, run `select cron.unschedule('family-hub-reminders');` in 
 
 ---
 
+## Private notes: end-to-end encryption (optional)
+
+Normally, your family's data is protected by your logins, the database rules and Supabase's disk encryption. If you also want **private notes that not even the server can read**, an admin can turn on end-to-end encryption:
+
+1. Go to **More** → **Encryption** → **Turn on encryption**, tick the box and enter your password.
+2. You'll see a **family recovery code** like `ABCD-EFGH-…`. **Save it somewhere safe** (a password manager, or print it), then tap **Done**. It's shown only once.
+3. That's it. Other family members get the key automatically: their key is made when they sign in, and an admin's app shares the family key with them.
+
+**What gets encrypted:** chore notes, event notes, event locations and recipe notes. They're encrypted on your phone before they're saved, and stored as `enc:v1:…` gibberish.
+Titles, dates and times stay readable, so the calendar, reminders and push notifications keep working.
+
+**Things to know:**
+- **Your password is the key.** You type it when you sign in. On a new device, signing in unlocks everything automatically. If a device ever shows *"Private notes are locked on this device"*, tap **Unlock** and enter your password.
+- **Forgot your password?** Reset it as usual. Your notes show 🔒 until an admin opens Family Hub, at which point their app re-shares the key with you automatically.
+- **If every admin loses access** and the recovery code is lost too, encrypted notes can't be recovered by anyone. Not Supabase, and not the developer. With the code, an admin goes to **More** → **Encryption** → **Use recovery code**.
+- **Changing your password** in **More** → **Profile** keeps your access. It asks for your current password too.
+- **Push notifications** never include notes or locations.
+- **Turning it off** (admins: **More** → **Encryption** → **Turn off encryption**) decrypts everything back to normal text.
+- **Exports** (**More** → **Privacy & your data**) are decrypted on your device, so the file is readable.
+
+The full technical details, including the threat model, are in [SECURITY.md](SECURITY.md).
+
 ## Roles
 
 | | Admin (parents) | Member (kids) |
@@ -224,9 +256,13 @@ To stop all reminders, run `select cron.unschedule('family-hub-reminders');` in 
 
 ## Security and privacy
 
-- **HTTPS only.** Vercel serves the site over HTTPS, and `vercel.json` adds strict security headers (HSTS, a Content-Security-Policy and no framing).
-- **Encrypted at rest.** Supabase stores the database and its backups on AES-256 encrypted disks. More details and how to verify this are in Phase 6.
+Full details are in **[SECURITY.md](SECURITY.md)**.
+
+- **HTTPS only.** Vercel serves the site over HTTPS, and `vercel.json` adds strict security headers (HSTS, a Content-Security-Policy and no framing). Push messages are encrypted to each device.
+- **Encrypted at rest.** Supabase encrypts the database, photo storage and backups on disk with AES-256. That's a guarantee of the hosting provider, which SECURITY.md explains, including what it does and doesn't protect against.
+- **Check it yourself.** Run [`supabase/setup/security-check.sql`](supabase/setup/security-check.sql) in the Supabase SQL Editor. Every line should say ✅. Also turn on **Project Settings** → **Database** → **Enforce SSL on incoming connections**.
 - **Row Level Security** is on for every table. A person can only read or change data in a family they belong to. The automated tests in `tests/integration/` prove that one family can't see another family's data.
+- **Optional end-to-end encryption** for private notes (see above).
 - **Input checking.** Everything you type is checked in the app *and* cleaned in the database (length limits and control characters removed).
 - **No secrets in the code.** The website only contains the public anon key. Secrets live in environment variables, and `.env.example` shows the names.
 - **Wrong invite codes.** After 10 wrong codes in an hour, that account is blocked from trying again for an hour.
@@ -239,12 +275,46 @@ Supabase's free built-in email only reaches members of your Supabase team. To em
 1. Sign up at **https://resend.com** (the free plan sends 3,000 emails a month) and verify your domain, or use their test domain.
 2. In Supabase, go to **Project Settings** → **Authentication** → **SMTP Settings**, enable custom SMTP and enter Resend's SMTP details.
 
-Without this, if a family member forgets their password, the project owner can go to Supabase → **Authentication** → **Users**, find that person, and delete them. The person then signs up again and rejoins with the invite code.
+Without this, if a family member forgets their password, the project owner can go to Supabase → **Authentication** → **Users**, find that person, and delete them. The person then signs up again and rejoins with the invite code. If encryption is on, an admin's app shares the key with their new account automatically.
 
 ## Free plan notes
 - **Edge Functions:** the reminder timer uses about 43,000 function calls a month. The free plan allows 500,000.
 - **Inactivity pause:** a free Supabase project pauses after about **7 days with no activity**. Everyday family use keeps it awake. If it does pause, open the Supabase dashboard and click **Restore**.
 - **Free limits:** 500 MB of database and 1 GB of file storage, which is plenty for a family.
+
+---
+
+## Known limitations
+
+- **iPhone push** needs iOS 16.4+ and the app on the Home Screen. In a Safari tab, reminders only show while the app is open. Focus modes and Low Power Mode can delay notifications.
+- **Reminders** are checked once a minute, so they can arrive up to a minute late. Push only works after the one-off setup in Step 7.
+- **Free Supabase** projects pause after about 7 days without use. Restore with one click.
+- **Emails** (password reset, confirmation) need a free email service such as Resend, because Supabase's built-in sender only reaches your own team.
+- **Sign in with Apple** isn't included, because it needs the paid Apple Developer account. Google sign-in is possible (free) but wasn't set up, at your request.
+- **Everyone needs an email address.** There are no parent-managed child accounts yet.
+- **Offline:** the app opens offline and shows what was last loaded, but changes need a connection. They aren't queued.
+- **Encryption:**
+  - Titles, dates, times, ingredients and shopping items aren't encrypted, so search, the calendar and reminders keep working.
+  - Removing a member doesn't change (rotate) the family key.
+  - If every admin and the recovery code are lost, encrypted notes are gone.
+- **Editing repeating events** changes every date. You can skip a single date, but not edit just one occurrence.
+- **Several families:** one account can belong to more than one family, but the app shows one at a time. Switch in **More**.
+- **Deleting your account:** there's no "delete my account" button. Leave the family, then the project owner deletes the user in Supabase → Authentication.
+
+## Possible future upgrades
+
+- **App Store version:** wrap the same code with Capacitor for an App Store app (needs the paid Apple Developer account), adding native widgets, Siri and reliable background notifications.
+- **Child accounts** with a username and PIN, created by a parent (needs a small Edge Function).
+- **Sign in with Google**, or with Apple (paid account).
+- **Offline editing:** queue changes made offline and sync them later.
+- **Key rotation:** a new family key when someone leaves, plus encrypted titles as an option.
+- **Edit one occurrence** of a repeating event or chore.
+- **Rewards:** turn points into rewards (screen time, pocket money), with charts and weekly leaderboards.
+- **Calendar sync:** two-way sync with Google Calendar or iCloud (ICS feeds).
+- **Recipe import** from a web page link, and scaling recipes by servings.
+- **Barcode scanning** for the shopping list, and grouping by your own shop's aisles.
+- **Home Screen widgets** (needs the native app).
+- **More languages**, and US date formats.
 
 ---
 
@@ -261,8 +331,9 @@ npm run dev                 # http://localhost:5173
 |---|---|
 | `npm run dev` | Start the dev server |
 | `npm run build` | Type-check and build to `dist/`, including the PWA icons and splash screens |
-| `npm test` | Unit tests (Vitest) |
-| `npm run test:integration` | RLS, permission and recurrence tests against the local Supabase |
+| `npm test` | Unit tests (Vitest): repeat rules, status/NEW/streaks, reminders, encryption, Web Push, ingredients, validation |
+| `npm run test:integration` | RLS, permission, notification and encryption tests against the local Supabase |
+| `npm run typecheck` / `npm run lint` | TypeScript and oxlint |
 | `npm run db:reset` | Recreate the local database from `supabase/migrations` |
 | `npm run db:types` | Regenerate `src/lib/database.types.ts` |
 | `npx supabase functions serve --env-file supabase/functions/.env.local` | Run the reminder function locally |
@@ -285,12 +356,16 @@ src/
   lib/calendar/         event expansion, multi-day spans, month grids (unit-tested)
   lib/food/             ingredient parsing/merging, aisles, built-in suggestions (unit-tested)
   features/notifications/  notification centre, settings, push setup helper
+  features/encryption/  encryption provider, unlock, settings page
+  features/demo/        "Load demo data"
+  lib/crypto/           end-to-end encryption (Web Crypto) + on-device key store (unit-tested)
   sw.ts                 service worker (offline support, push notifications)
 supabase/migrations/    the database schema and RLS policies (run in order)
 supabase/functions/send-reminders/  Edge Function: reminders + Web Push (no dependencies)
-supabase/setup/         one-off SQL (the reminder timer)
-.github/workflows/      deploys the Edge Function
-tests/integration/      RLS tests against a real Supabase
+supabase/setup/         one-off SQL (the reminder timer, the security self-check)
+.github/workflows/      CI (types, lint, tests, build) and Edge Function deploy
+SECURITY.md             how data is protected, and how to verify it
+tests/integration/      RLS, permission, notification and encryption tests against a real Supabase
 vercel.json             hosting, security headers and SPA routing
 ```
 
@@ -298,3 +373,11 @@ vercel.json             hosting, security headers and SPA routing
 
 ### How repeating chores work (technical)
 A task stores a repeat rule. Each day the rule matches is an *occurrence*. Ticking writes a row to `task_completions` for that date (and person), so each day is independent. A past occurrence with no completion is *missed*. Because status is worked out from the rule and the ticks, history needs no background job and never gets lost. The rule exists in TypeScript (`src/lib/tasks/recurrence.ts`) and in SQL (`public.occurs_on`), and an integration test checks that they agree on every day across three years. The server also refuses ticks for days a task isn't due, for future days, and for other people's tasks.
+
+### Tests
+- **87 unit tests** (`npm test`).
+- **91 integration tests** (`npm run test:integration`, with `npx supabase start` running). These include cross-family isolation for every table and for photo storage. Switching RLS off on a table makes them fail, which proves the tests work.
+- **During development, each phase was also tested end to end in real browsers:**
+  - Playwright scripts ran on iPhone and desktop sizes.
+  - An axe-core accessibility audit of 36 page and theme combinations found no WCAG 2.1 AA problems.
+  - Web Push was tested end to end against a fake push service.

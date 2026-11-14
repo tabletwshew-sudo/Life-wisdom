@@ -1,6 +1,7 @@
 import type { Session, User } from '@supabase/supabase-js'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { clearKeys } from '@/lib/crypto/keystore'
 import { supabase } from '@/lib/supabase'
 
 interface AuthState {
@@ -30,8 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === 'PASSWORD_RECOVERY') setRecovering(true)
       if (event === 'SIGNED_OUT') {
         setRecovering(false)
-        // Wipe cached family data from this device.
+        // Wipe cached family data and unlocked keys from this device.
         qc.clear()
+        clearKeys()
         try {
           localStorage.removeItem('fh-cache')
           localStorage.removeItem('fh-family')

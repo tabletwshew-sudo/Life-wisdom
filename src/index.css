@@ -12,9 +12,9 @@
   --color-brand-100: #e8e2ff;
   --color-brand-200: #d1c6ff;
   --color-brand-400: #9a85ff;
-  --color-brand-500: #7b61ff;
-  --color-brand-600: #6446f0;
-  --color-brand-700: #5032cc;
+  --color-brand-500: #6c50f5; /* 5.1:1 with white text (WCAG AA) */
+  --color-brand-600: #5a3de0;
+  --color-brand-700: #4a2fc0;
 
   /* Surfaces (switch with theme via CSS variables below) */
   --color-app: var(--app-bg);

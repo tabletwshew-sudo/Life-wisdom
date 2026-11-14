@@ -67,7 +67,7 @@ export function DateStrip({ selected, today, weekStartsOn, onSelect, marker }: P
                   d === today && !isSel && 'ring-2 ring-brand-400',
                 )}
               >
-                <span className={clsx('text-[11px] font-semibold uppercase', isSel ? 'text-white/80' : 'text-ink-3')}>
+                <span className={clsx('text-[11px] font-semibold uppercase', isSel ? 'text-white' : 'text-ink-3')}>
                   {formatDate(d, { weekday: 'short' }).slice(0, 3)}
                 </span>
                 <span className="text-lg font-bold">{formatDate(d, { day: 'numeric' })}</span>

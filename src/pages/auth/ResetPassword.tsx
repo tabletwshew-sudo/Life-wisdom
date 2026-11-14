@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider'
+import { useEncryption } from '@/features/encryption/EncryptionProvider'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { useToast } from '@/components/ui/Toast'
@@ -11,6 +12,7 @@ import { AuthLayout, FormError } from './AuthLayout'
 
 export default function ResetPassword() {
   const { session, clearRecovering } = useAuth()
+  const { resetMyKeys } = useEncryption()
   const navigate = useNavigate()
   const toast = useToast()
   const [password, setPassword] = useState('')
@@ -23,10 +25,17 @@ export default function ResetPassword() {
     if (!parsed.success) return setError(parsed.error.issues[0].message)
     setBusy(true)
     const { error: err } = await supabase.auth.updateUser({ password: parsed.data })
+    if (err) {
+      setBusy(false)
+      return setError(friendlyError(err))
+    }
+    // The old password locked this person's encryption key, so make a fresh one.
+    // An admin's device shares the family key again automatically.
+    const { count } = await supabase.from('user_private_keys').select('user_id', { count: 'exact', head: true })
+    if (count) await resetMyKeys(parsed.data).catch(() => {})
     setBusy(false)
-    if (err) return setError(friendlyError(err))
     clearRecovering()
-    toast('Password updated')
+    toast(count ? 'Password updated. Private notes unlock again once an admin’s app is opened.' : 'Password updated')
     navigate('/', { replace: true })
   }
 

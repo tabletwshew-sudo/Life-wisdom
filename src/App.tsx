@@ -1,7 +1,8 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useSyncExternalStore } from 'react'
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider'
 import { AppShell } from '@/components/layout/AppShell'
+import { keysPreparing } from '@/features/encryption/keys'
 import { FullScreenSpinner, Spinner } from '@/components/ui/Spinner'
 import { useFamily } from '@/family/FamilyProvider'
 import { getPendingInvite, setPendingInvite } from '@/pages/auth/AuthLayout'
@@ -12,6 +13,7 @@ import SignUp from '@/pages/auth/SignUp'
 import Today from '@/pages/Today'
 import Welcome from '@/pages/Welcome'
 
+const EncryptionPage = lazy(() => import('@/features/encryption/EncryptionPage'))
 const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage'))
 const NotificationSettings = lazy(() => import('@/features/notifications/NotificationSettings'))
 const PushSetup = lazy(() => import('@/features/notifications/PushSetup'))
@@ -31,7 +33,8 @@ const InstallHelp = lazy(() => import('@/pages/more/InstallHelp'))
 /** Signed-out only pages (sign in / sign up). */
 function PublicOnly() {
   const { session, loading } = useAuth()
-  if (loading) return <FullScreenSpinner />
+  const preparingKeys = useSyncExternalStore(keysPreparing.subscribe, keysPreparing.get)
+  if (loading || (session && preparingKeys)) return <FullScreenSpinner />
   return session ? <Navigate to="/" replace /> : <Outlet />
 }
 
@@ -149,6 +152,7 @@ export default function App() {
                       <Route path="event-types" element={<EventTypes />} />
                       <Route path="notifications" element={<NotificationSettings />} />
                       <Route path="notifications/setup" element={<PushSetup />} />
+                      <Route path="encryption" element={<EncryptionPage />} />
                       <Route path="*" element={<Navigate to="/more" replace />} />
                     </Routes>
                   </Suspense>

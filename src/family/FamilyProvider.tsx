@@ -159,7 +159,11 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
   }, [qc])
 
   const value: FamilyState = {
-    loading: (familiesQ.isPending && familiesQ.fetchStatus !== 'paused') || (!!family && membersQ.isPending && membersQ.fetchStatus !== 'paused'),
+    loading:
+      (familiesQ.isPending && familiesQ.fetchStatus !== 'paused') ||
+      // A saved (offline) copy saying "no family yet" may be stale: wait for the fresh check before redirecting.
+      (families.length === 0 && familiesQ.fetchStatus === 'fetching') ||
+      (!!family && membersQ.isPending && membersQ.fetchStatus !== 'paused'),
     loadError: (familiesQ.isError || familiesQ.fetchStatus === 'paused') && !familiesQ.data,
     families,
     family,

@@ -14,6 +14,7 @@ import { friendlyError } from '@/lib/errors'
 import { REPEAT_OPTIONS, describeRule, type Repeat } from '@/lib/tasks/recurrence'
 import type { Task } from '@/lib/tasks/model'
 import { fieldErrors, taskSchema } from '@/lib/validation'
+import { SecretHint, useSecretField } from '@/features/encryption/useSecretField'
 import { useCategories, useSaveTask, type TaskInput } from './api'
 
 export const TASK_EMOJI = [
@@ -103,6 +104,7 @@ export function TaskSheet({ open, onClose, task, defaultDate, onSaved }: Props) 
 
   const d = state.data
   const set = <K extends keyof TaskInput>(k: K, v: TaskInput[K]) => setState((s) => ({ ...s, data: { ...s.data, [k]: v } }))
+  const notes = useSecretField(open, 'tasks.notes', task?.notes, (v) => set('notes', v))
   const toggleAssignee = (id: string) =>
     setState((s) => ({ ...s, assignees: s.assignees.includes(id) ? s.assignees.filter((a) => a !== id) : [...s.assignees, id] }))
 
@@ -114,7 +116,8 @@ export function TaskSheet({ open, onClose, task, defaultDate, onSaved }: Props) 
     }
     setErrors({})
     try {
-      const id = await save.mutateAsync({ id: task?.id, data: parsed.data, assignees: state.assignees })
+      const data = { ...parsed.data, notes: await notes.seal(parsed.data.notes) }
+      const id = await save.mutateAsync({ id: task?.id, data, assignees: state.assignees })
       toast(task ? 'Task updated' : 'Task added')
       onSaved?.(id)
       onClose()
@@ -347,13 +350,15 @@ export function TaskSheet({ open, onClose, task, defaultDate, onSaved }: Props) 
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-semibold text-ink-2">Notes (optional)</span>
           <textarea
-            value={d.notes}
+            value={notes.locked ? '' : d.notes}
             onChange={(e) => set('notes', e.target.value)}
             maxLength={2000}
             rows={3}
-            placeholder="Any details…"
-            className="rounded-xl border border-line bg-card px-4 py-3 placeholder:text-ink-3 focus:border-brand-500 focus:outline-none"
+            disabled={notes.locked}
+            placeholder={notes.locked ? '🔒 Encrypted' : 'Any details…'}
+            className="rounded-xl border border-line bg-card px-4 py-3 placeholder:text-ink-3 focus:border-brand-500 focus:outline-none disabled:opacity-60"
           />
+          <SecretHint {...notes} />
         </label>
       </div>
     </Sheet>

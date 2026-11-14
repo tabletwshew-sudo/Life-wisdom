@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/Toast'
 import { useCurrentFamily } from '@/family/FamilyProvider'
 import { friendlyError } from '@/lib/errors'
 import { fieldErrors, recipeSchema } from '@/lib/validation'
+import { SecretHint, useSecretField } from '@/features/encryption/useSecretField'
 import { uploadRecipePhoto, usePhotoUrls, useSaveRecipe, type Recipe, type RecipeInput } from './api'
 import { DRINK_TAGS, FOOD_TAGS, RecipeImage } from './RecipeCard'
 
@@ -73,6 +74,7 @@ export function RecipeSheet({ open, onClose, recipe, draft, onSaved }: Props) {
   }, [open, recipe, draft])
 
   const set = <K extends keyof RecipeInput>(k: K, v: RecipeInput[K]) => setD((s) => ({ ...s, [k]: v }))
+  const notes = useSecretField(open, 'recipes.notes', recipe?.notes, (v) => set('notes', v))
   const tagOptions = d.kind === 'drink' ? DRINK_TAGS : FOOD_TAGS
 
   async function onPhoto(file: File | undefined) {
@@ -99,7 +101,8 @@ export function RecipeSheet({ open, onClose, recipe, draft, onSaved }: Props) {
     if (!parsed.success) return setErrors(fieldErrors(parsed.error))
     setErrors({})
     try {
-      const id = await save.mutateAsync({ id: recipe?.id, data: parsed.data, oldPhoto: recipe?.photo_path })
+      const data = { ...parsed.data, notes: await notes.seal(parsed.data.notes) }
+      const id = await save.mutateAsync({ id: recipe?.id, data, oldPhoto: recipe?.photo_path })
       toast(recipe ? 'Saved' : d.is_idea ? 'Idea saved' : d.kind === 'drink' ? 'Drink added' : 'Recipe added')
       onSaved?.(id)
       onClose()
@@ -260,13 +263,15 @@ export function RecipeSheet({ open, onClose, recipe, draft, onSaved }: Props) {
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-semibold text-ink-2">Notes (optional)</span>
           <textarea
-            value={d.notes}
+            value={notes.locked ? '' : d.notes}
             onChange={(e) => set('notes', e.target.value)}
             rows={3}
             maxLength={2000}
-            placeholder="Tips, swaps, who likes it…"
-            className="rounded-xl border border-line bg-card px-4 py-3 placeholder:text-ink-3 focus:border-brand-500 focus:outline-none"
+            disabled={notes.locked}
+            placeholder={notes.locked ? '🔒 Encrypted' : 'Tips, swaps, who likes it…'}
+            className="rounded-xl border border-line bg-card px-4 py-3 placeholder:text-ink-3 focus:border-brand-500 focus:outline-none disabled:opacity-60"
           />
+          <SecretHint {...notes} />
         </label>
       </div>
     </Sheet>

@@ -1,4 +1,5 @@
 import { Pencil, Trash2 } from 'lucide-react'
+import { Secret } from '@/features/encryption/Secret'
 import { useRef, useState } from 'react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
@@ -109,7 +110,7 @@ export function TaskDetailSheet({ occ: current, today, onClose, onEdit }: Props)
         {task.notes && (
           <div>
             <p className="mb-1 text-sm font-semibold text-ink-3">Notes</p>
-            <p className="whitespace-pre-wrap">{task.notes}</p>
+            <Secret field="tasks.notes" value={task.notes} className="block whitespace-pre-wrap" />
           </div>
         )}
 

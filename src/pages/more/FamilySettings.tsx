@@ -1,4 +1,5 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Wand2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -7,7 +8,9 @@ import { Card } from '@/components/ui/Card'
 import { Field } from '@/components/ui/Field'
 import { Toggle } from '@/components/ui/Toggle'
 import { useToast } from '@/components/ui/Toast'
+import { loadDemoData } from '@/features/demo/loadDemo'
 import { useCurrentFamily, type Family } from '@/family/FamilyProvider'
+import { useToday } from '@/hooks/useToday'
 import { friendlyError } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
 import { familyNameSchema } from '@/lib/validation'
@@ -26,7 +29,10 @@ type Editable = Pick<
 >
 
 export default function FamilySettings() {
-  const { family, isAdmin, refresh } = useCurrentFamily()
+  const { family, isAdmin, refresh, me, members } = useCurrentFamily()
+  const qc = useQueryClient()
+  const today = useToday()
+  const [demoBusy, setDemoBusy] = useState(false)
   const toast = useToast()
   const [name, setName] = useState(family.name)
   const zones = useMemo(() => {
@@ -101,6 +107,31 @@ export default function FamilySettings() {
         <Toggle label="Calendar events" checked={family.members_can_add_events} onChange={(v) => save.mutate({ members_can_add_events: v })} />
         <Toggle label="Recipes & ideas" checked={family.members_can_add_recipes} onChange={(v) => save.mutate({ members_can_add_recipes: v })} />
         <Toggle label="Shopping list items" checked={family.members_can_add_shopping} onChange={(v) => save.mutate({ members_can_add_shopping: v })} />
+      </SettingsGroup>
+
+      <SettingsGroup title="Try it out">
+        <div className="flex flex-col gap-2 p-4">
+          <p className="text-ink-2">Add example chores, events, recipes, a meal plan and a shopping list, so you can see how everything works. Only fills empty sections.</p>
+          <Button
+            variant="secondary"
+            loading={demoBusy}
+            icon={<Wand2 className="size-5" />}
+            onClick={async () => {
+              setDemoBusy(true)
+              try {
+                const added = await loadDemoData(family.id, me, members, today)
+                await qc.invalidateQueries()
+                toast(added.length ? `Added example ${added.join(', ')}` : 'You already have data in every section')
+              } catch (e) {
+                toast(friendlyError(e), 'error')
+              } finally {
+                setDemoBusy(false)
+              }
+            }}
+          >
+            Load demo data
+          </Button>
+        </div>
       </SettingsGroup>
 
       <SettingsGroup title="Fun">

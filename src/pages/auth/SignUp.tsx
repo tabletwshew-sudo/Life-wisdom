@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { friendlyError } from '@/lib/errors'
+import { prepareKeys } from '@/features/encryption/keys'
 import { supabase } from '@/lib/supabase'
 import { fieldErrors, signUpSchema } from '@/lib/validation'
 import { AuthLayout, FormError, getPendingInvite } from './AuthLayout'
@@ -33,10 +34,18 @@ export default function SignUp() {
         emailRedirectTo: `${window.location.origin}/welcome`,
       },
     })
-    setBusy(false)
-    if (error) return setFormError(friendlyError(error))
+    if (error) {
+      setBusy(false)
+      return setFormError(friendlyError(error))
+    }
     // If "Confirm email" is switched on in Supabase there is no session yet.
-    if (!data.session) return setCheckEmail(true)
+    if (!data.session || !data.user) {
+      setBusy(false)
+      return setCheckEmail(true)
+    }
+    // Create this person's encryption key now (about a second).
+    await prepareKeys(data.user.id, parsed.data.password).catch((e) => console.warn('Could not prepare encryption keys:', e))
+    setBusy(false)
     navigate('/welcome', { replace: true })
   }
 

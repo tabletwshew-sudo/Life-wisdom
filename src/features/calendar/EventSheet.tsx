@@ -14,6 +14,7 @@ import { readableTextOn } from '@/lib/colours'
 import { addDays, daysBetween } from '@/lib/dates'
 import { friendlyError } from '@/lib/errors'
 import { fieldErrors, eventSchema } from '@/lib/validation'
+import { SecretHint, useSecretField } from '@/features/encryption/useSecretField'
 import { useEventTypes, useSaveEvent, type EventInput } from './api'
 
 export const EVENT_REPEATS: { value: EventRepeat; label: string }[] = [
@@ -103,6 +104,8 @@ export function EventSheet({ open, onClose, event, defaultDate }: Props) {
   const d = state.data
   const set = <K extends keyof EventInput>(k: K, v: EventInput[K]) => setState((s) => ({ ...s, data: { ...s.data, [k]: v } }))
   const patch = (p: Partial<EventInput>) => setState((s) => ({ ...s, data: { ...s.data, ...p } }))
+  const notes = useSecretField(open, 'events.notes', event?.notes, (v) => set('notes', v))
+  const location = useSecretField(open, 'events.location', event?.location, (v) => set('location', v))
   const toggleAttendee = (id: string) =>
     setState((s) => ({ ...s, attendees: s.attendees.includes(id) ? s.attendees.filter((a) => a !== id) : [...s.attendees, id] }))
 
@@ -118,7 +121,8 @@ export function EventSheet({ open, onClose, event, defaultDate }: Props) {
     if (!parsed.success) return setErrors(fieldErrors(parsed.error))
     setErrors({})
     try {
-      await save.mutateAsync({ id: event?.id, data: parsed.data, attendees: state.attendees })
+      const data = { ...parsed.data, notes: await notes.seal(parsed.data.notes), location: await location.seal(parsed.data.location) }
+      await save.mutateAsync({ id: event?.id, data, attendees: state.attendees })
       toast(event ? 'Event updated' : 'Event added')
       onClose()
     } catch (e) {
@@ -221,8 +225,16 @@ export function EventSheet({ open, onClose, event, defaultDate }: Props) {
         </fieldset>
 
         <div className="relative">
-          <Field label="Location (optional)" placeholder="Where?" value={d.location} onChange={(e) => set('location', e.target.value)} maxLength={300} />
-          <MapPin className="pointer-events-none absolute right-3 bottom-3.5 size-5 text-ink-3" aria-hidden />
+          <Field
+            label="Location (optional)"
+            placeholder={location.locked ? '🔒 Encrypted' : 'Where?'}
+            value={location.locked ? '' : d.location}
+            disabled={location.locked}
+            onChange={(e) => set('location', e.target.value)}
+            maxLength={300}
+            hint={location.locked || location.encrypted ? <SecretHint {...location} /> : undefined}
+          />
+          <MapPin className="pointer-events-none absolute top-11 right-3 size-5 text-ink-3" aria-hidden />
         </div>
 
         <fieldset>
@@ -288,13 +300,15 @@ export function EventSheet({ open, onClose, event, defaultDate }: Props) {
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-semibold text-ink-2">Notes (optional)</span>
           <textarea
-            value={d.notes}
+            value={notes.locked ? '' : d.notes}
             onChange={(e) => set('notes', e.target.value)}
             maxLength={2000}
             rows={3}
-            placeholder="Presents to buy, what to bring…"
-            className="rounded-xl border border-line bg-card px-4 py-3 placeholder:text-ink-3 focus:border-brand-500 focus:outline-none"
+            disabled={notes.locked}
+            placeholder={notes.locked ? '🔒 Encrypted' : 'Presents to buy, what to bring…'}
+            className="rounded-xl border border-line bg-card px-4 py-3 placeholder:text-ink-3 focus:border-brand-500 focus:outline-none disabled:opacity-60"
           />
+          <SecretHint {...notes} />
         </label>
       </div>
     </Sheet>

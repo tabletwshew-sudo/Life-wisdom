@@ -1,4 +1,5 @@
 import { CalendarDays, MapPin, Pencil, Repeat as RepeatIcon, Trash2 } from 'lucide-react'
+import { Secret } from '@/features/encryption/Secret'
 import { useRef, useState } from 'react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
@@ -73,7 +74,7 @@ export function EventDetailSheet({ occ: current, onClose, onEdit }: { occ: Event
         {e.location && (
           <p className="flex items-start gap-2">
             <MapPin className="mt-0.5 size-5 shrink-0 text-ink-3" aria-hidden />
-            {e.location.startsWith('enc:') ? '🔒 Encrypted' : e.location}
+            <Secret field="events.location" value={e.location} />
           </p>
         )}
 
@@ -96,7 +97,7 @@ export function EventDetailSheet({ occ: current, onClose, onEdit }: { occ: Event
         {e.notes && (
           <div>
             <p className="mb-1 text-sm font-semibold text-ink-3">Notes</p>
-            <p className="whitespace-pre-wrap">{e.notes.startsWith('enc:') ? '🔒 Encrypted' : e.notes}</p>
+            <Secret field="events.notes" value={e.notes} className="block whitespace-pre-wrap" />
           </div>
         )}
 
