@@ -164,9 +164,12 @@ The Food tab has five sections:
   - **New recipes** show a ✨ NEW badge until you've seen them.
   - **On a recipe's page:** tick ingredients off as you cook, send them to the **Shopping list**, or **Plan it** for a day.
   - **Trying it out:** an admin can tap **Add example recipes** on an empty recipe book.
-- **🛒 Shopping:** one shared list, live for everyone, so two people in different aisles don't buy the same thing.
-  - **Adding items:** type things like "2 milk". Items are sorted into supermarket aisles automatically.
-  - **In the shop:** tap the circle to tick an item; it moves to "In the trolley" with the person who got it. **Clear ticked** tidies up afterwards.
+- **🛒 Shopping:** one shared list, live for everyone, in **Woolworths (Eastgardens) walking order**: 0.1 to 0.7 around the fresh produce, then aisles 1 to 12, then **Coles**, then **Other**. The blue arrows from the printed sheet show which way to go.
+  - **Woolworths list:** your whole printed list as a checklist. Tick what you need and it goes on the shopping list; untick it to take it off. Your usual items are starred ⭐ (try **Regulars only**), and you can search.
+  - **Typing items:** type things like "2 milk" and they go into the right aisle automatically. Ingredients from the meal plan do the same. Anything it doesn't recognise goes under **Other**.
+  - **Wrong aisle?** Tap the item and pick where it really is, for example Coles.
+  - **In the shop:** tap the circle to tick an item, and it moves to "In the trolley" with who got it. **Clear ticked** tidies up afterwards.
+  - **Changing the layout:** if the shop moves things around, edit `src/lib/food/storeLayout.ts` (or ask Claude to). It's the printed list written out as data.
 - **💡 Ideas:** save links and recipes to try.
   - **Suggest something** gives you one of your own recipes you haven't had for a while, plus something new from a built-in list. Filter by dinner, breakfast, lunch, dessert, veggie, kid-friendly or drink. It's free, with no AI service involved.
   - **Saving a suggestion:** save it as an idea, or **Make it a recipe**. Once you've tried an idea, edit it and switch on **Move to the recipe book**.

@@ -1,3 +1,5 @@
+import { STORE_SECTIONS, sectionFor, sectionOrder } from './storeLayout'
+
 /**
  * Turns free-text ingredient lines ("200g pasta", "2 onions", "½ tsp salt")
  * into structured pieces, merges duplicates for the shopping list and sorts
@@ -118,41 +120,15 @@ export function aggregateIngredients(sources: { recipe: string; lines: string[] 
       aisle: aisleFor(g.item),
       forRecipes: [...g.recipes],
     }))
-    .sort((a, b) => a.aisle.localeCompare(b.aisle) || a.name.localeCompare(b.name))
+    .sort((a, b) => sectionOrder(a.aisle) - sectionOrder(b.aisle) || a.name.localeCompare(b.name))
 }
 
 const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
-export const AISLES = [
-  'Fruit & veg',
-  'Meat & fish',
-  'Dairy & eggs',
-  'Bakery',
-  'Cupboard',
-  'Frozen',
-  'Drinks',
-  'Snacks',
-  'Household',
-  'Other',
-] as const
+// Aisles come from the family's own shop layout (storeLayout.ts).
+export const AISLES = STORE_SECTIONS.map((s) => s.id)
 
-const AISLE_WORDS: [string, string[]][] = [
-  ['Household', ['toilet', 'kitchen roll', 'washing', 'detergent', 'soap', 'shampoo', 'toothpaste', 'bin bag', 'foil', 'cling', 'sponge', 'bleach', 'nappies', 'wipes']],
-  // Tinned/dried things go to the cupboard even if they're a vegetable.
-  ['Cupboard', ['chopped tomatoes', 'tinned', 'tin of', 'can of', 'passata', 'tomato puree', 'dried', 'baked beans', 'sweetcorn tin']],
-  ['Frozen', ['frozen', 'ice cream', 'peas', 'fish fingers', 'ice']],
-  ['Fruit & veg', ['apple', 'banana', 'orange', 'lemon', 'lime', 'berry', 'berries', 'grape', 'melon', 'mango', 'pear', 'peach', 'pineapple', 'kiwi', 'avocado', 'tomato', 'potato', 'onion', 'garlic', 'carrot', 'pepper', 'lettuce', 'salad', 'cucumber', 'spinach', 'broccoli', 'cauliflower', 'courgette', 'mushroom', 'leek', 'celery', 'ginger', 'herb', 'basil', 'coriander', 'parsley', 'mint', 'chilli', 'sweetcorn', 'cabbage', 'kale', 'squash', 'sweet potato', 'spring onion', 'beansprout', 'aubergine']],
-  ['Meat & fish', ['chicken', 'beef', 'mince', 'pork', 'lamb', 'bacon', 'sausage', 'ham', 'turkey', 'salmon', 'tuna', 'cod', 'fish', 'prawn', 'steak', 'chorizo']],
-  ['Dairy & eggs', ['milk', 'cheese', 'cheddar', 'mozzarella', 'parmesan', 'feta', 'butter', 'yoghurt', 'yogurt', 'cream', 'egg', 'creme fraiche', 'halloumi']],
-  ['Bakery', ['bread', 'roll', 'bagel', 'wrap', 'tortilla', 'pitta', 'naan', 'croissant', 'bun', 'muffin', 'crumpet']],
-  ['Drinks', ['juice', 'squash', 'lemonade', 'cola', 'water', 'tea', 'coffee', 'wine', 'beer', 'gin', 'rum', 'vodka', 'tonic', 'soda', 'prosecco']],
-  ['Snacks', ['crisps', 'chocolate', 'biscuit', 'sweets', 'popcorn', 'cereal bar']],
-  ['Cupboard', ['pasta', 'spaghetti', 'rice', 'noodle', 'flour', 'sugar', 'salt', 'oil', 'vinegar', 'stock', 'tin', 'beans', 'lentil', 'chickpea', 'sauce', 'ketchup', 'mayo', 'mustard', 'honey', 'jam', 'cereal', 'oats', 'porridge', 'spice', 'paprika', 'cumin', 'curry', 'cinnamon', 'oregano', 'baking', 'yeast', 'cocoa', 'peanut', 'nut', 'raisin', 'syrup', 'soy', 'coconut milk', 'passata', 'puree']],
-]
-
+/** Which aisle of your shop an item is in ("other" if unknown). */
 export function aisleFor(item: string): string {
-  const s = item.toLowerCase()
-  // Match at the start of a word, so "roll" doesn't match "trolley".
-  for (const [aisle, words] of AISLE_WORDS) if (words.some((w) => new RegExp(`(^|[^a-z])${w}`).test(s))) return aisle
-  return 'Other'
+  return sectionFor(item)
 }

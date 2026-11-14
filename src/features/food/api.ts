@@ -293,3 +293,19 @@ export function useDeleteShopping() {
     onSettled: () => qc.invalidateQueries({ queryKey: foodKeys.shopping(fid) }),
   })
 }
+
+/** Move a shopping item to another aisle of the shop. */
+export function useMoveShopping() {
+  const fid = useFid()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, aisle }: { id: string; aisle: string }) => {
+      const { error } = await supabase.from('shopping_items').update({ aisle }).eq('id', id)
+      if (error) throw error
+    },
+    onMutate: ({ id, aisle }) => {
+      qc.setQueryData<ShoppingItem[]>(foodKeys.shopping(fid), (old) => old?.map((i) => (i.id === id ? { ...i, aisle } : i)))
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: foodKeys.shopping(fid) }),
+  })
+}

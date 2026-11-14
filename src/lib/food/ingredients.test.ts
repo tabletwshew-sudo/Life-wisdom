@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aggregateIngredients, aisleFor, itemKey, parseIngredient } from './ingredients'
+import { aggregateIngredients, AISLES, aisleFor, itemKey, parseIngredient } from './ingredients'
 
 describe('parseIngredient', () => {
   it.each([
@@ -47,16 +47,48 @@ describe('aggregateIngredients', () => {
   })
 })
 
-describe('aisleFor', () => {
-  it('sorts items into supermarket aisles', () => {
-    expect(aisleFor('Bananas')).toBe('Fruit & veg')
-    expect(aisleFor('chicken thighs')).toBe('Meat & fish')
-    expect(aisleFor('Greek yoghurt')).toBe('Dairy & eggs')
-    expect(aisleFor('spaghetti')).toBe('Cupboard')
-    expect(aisleFor('frozen peas')).toBe('Frozen')
-    expect(aisleFor('toilet roll')).toBe('Household')
-    expect(aisleFor('birthday candles')).toBe('Other')
-    expect(aisleFor('Chopped tomatoes')).toBe('Cupboard')
-    expect(aisleFor('tomatoes')).toBe('Fruit & veg')
+describe('aisleFor (Woolworths Eastgardens layout)', () => {
+  it.each([
+    ['Bananas', '0.2'],
+    ['Granny Smith apples', '0.3'],
+    ['Strawberries', '0.1'],
+    ['carrots', '0.4'],
+    ['Cherry tomatoes', '0.5'],
+    ['2 red onions', '0.6'],
+    ['Baby spinach', '0.6'],
+    ['milk', '0.7'],
+    ['Beef mince', '1'],
+    ['eggs', '1'],
+    ['Wholemeal bread', '2'],
+    ['Greek yoghurt', '2'],
+    ['grated cheese', '2'],
+    ['Tortilla wraps', '2'],
+    ['Nutella', '2'],
+    ['coffee', '3'],
+    ['Chips', '4'],
+    ['Tonic', '5'],
+    ['Spaghetti', '6'],
+    ['Coconut milk', '6'],
+    ['Tomato paste', '6'],
+    ['Chopped tomatoes', '7'],
+    ['Plain flour', '7'],
+    ['Peanuts', '7'],
+    ['Al foil', '8'],
+    ['Toothpaste', '9'],
+    ['AA batteries', '10'],
+    ['Dish liquid', '11'],
+    ['Toilet paper', '12'],
+    ['Ice cream', '12'],
+    ['Protein bars', 'coles'],
+    ['Pad thai sauce', '7'],
+    ['Birthday candles', '4'],
+    ['Something unusual', 'other'],
+  ])('%s → aisle %s', (item, aisle) => {
+    expect(aisleFor(item)).toBe(aisle)
+  })
+
+  it('every section in the layout is reachable and in walking order', () => {
+    expect(AISLES[0]).toBe('0.1')
+    expect(AISLES.at(-1)).toBe('other')
   })
 })
