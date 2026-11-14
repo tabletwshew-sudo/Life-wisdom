@@ -51,6 +51,7 @@ You don't need to install anything on your computer to get it running.
    | 4 | `20261114000400_food.sql` | Recipes, meal plans, shopping list, private photo storage |
    | 5 | `20261114000500_notifications.sql` | Notifications, reminders, push devices |
    | 6 | `20261114000600_encryption.sql` | Optional end-to-end encryption keys |
+   | 7 | `20261115000700_keep_alive.sql` | Keeps the free project from pausing (see below) |
 
 > Later phases add more files. Each time you update, run only the new file(s), in order. Running a file twice is safe.
 

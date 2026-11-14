@@ -27,9 +27,12 @@ jobs:
             echo "::error::Add SUPABASE_URL and SUPABASE_ANON_KEY in Settings → Secrets and variables → Actions."
             exit 1
           fi
-      - name: Ping the database and login service
+      - name: Ping the database
         run: |
           set -e
-          curl -fsS -o /dev/null -w "Database API: %{http_code}\n" "$URL/rest/v1/" -H "apikey: $KEY" -H "Authorization: Bearer $KEY"
-          curl -fsS -o /dev/null -w "Login service: %{http_code}\n" "$URL/auth/v1/health" -H "apikey: $KEY"
+          # Runs a tiny database function (supabase/migrations/…_keep_alive.sql).
+          curl -fsS -X POST "$URL/rest/v1/rpc/keep_alive" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{}' \
+            -w "\nDatabase: %{http_code}\n" \
+            || { echo "::error::Database ping failed. Did you run supabase/migrations/20261115000700_keep_alive.sql in the SQL Editor? (404 = not run yet; 401 = wrong key)"; exit 1; }
           echo "Supabase is awake ✅"
