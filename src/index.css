@@ -1,0 +1,107 @@
+@import 'tailwindcss';
+
+/* Dark mode follows the `.dark` class on <html> (set from Settings → Appearance). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+
+  /* Brand */
+  --color-brand-50: #f3f0ff;
+  --color-brand-100: #e8e2ff;
+  --color-brand-200: #d1c6ff;
+  --color-brand-400: #9a85ff;
+  --color-brand-500: #7b61ff;
+  --color-brand-600: #6446f0;
+  --color-brand-700: #5032cc;
+
+  /* Surfaces (switch with theme via CSS variables below) */
+  --color-app: var(--app-bg);
+  --color-card: var(--card-bg);
+  --color-card-2: var(--card-bg-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+
+  /* Status colours — always shown together with an icon, never on their own */
+  --color-done: #0f8a5f;
+  --color-missed: #c2410c;
+  --color-new: #b45309;
+  --color-new-bg: #fff4d6;
+
+  --radius-card: 1.25rem;
+  --shadow-card: 0 1px 2px rgb(20 18 31 / 0.04), 0 4px 16px rgb(20 18 31 / 0.06);
+}
+
+:root {
+  --app-bg: #f7f5ff;
+  --card-bg: #ffffff;
+  --card-bg-2: #f1eefb;
+  --line: #e6e2f3;
+  --ink: #1b1830;
+  --ink-2: #4a4565;
+  --ink-3: #6e6890;
+  color-scheme: light;
+}
+
+.dark {
+  --app-bg: #14121f;
+  --card-bg: #1f1c2e;
+  --card-bg-2: #2a263d;
+  --line: #36314d;
+  --ink: #f4f2ff;
+  --ink-2: #c9c4e3;
+  --ink-3: #a29cc4;
+  --color-new-bg: #3d2f0a;
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-app font-sans text-ink antialiased;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-500;
+  }
+  button,
+  [role='button'] {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  input,
+  select,
+  textarea {
+    /* 16px minimum stops iPhone Safari zooming into form fields */
+    font-size: max(1rem, 16px);
+  }
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+@utility pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
