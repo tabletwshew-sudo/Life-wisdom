@@ -5,6 +5,7 @@ import { useFamily } from '@/family/FamilyProvider'
 import type { Database } from '@/lib/database.types'
 import type { ISODate } from '@/lib/dates'
 import { aisleFor, type ShoppingLine } from '@/lib/food/ingredients'
+import { addQuantities } from '@/lib/food/quantity'
 import { compressImage } from '@/lib/image'
 import { onFamilyChanges } from '@/lib/realtime'
 import { supabase } from '@/lib/supabase'
@@ -226,12 +227,23 @@ export function useAddShopping() {
       const current = qc.getQueryData<ShoppingItem[]>(foodKeys.shopping(fid)) ?? []
       const open = new Map(current.filter((i) => !i.checked).map((i) => [i.name.toLowerCase(), i]))
       let added = 0
+      let increased = 0
       const inserts = []
       for (const l of lines) {
         const existing = open.get(l.name.toLowerCase())
         const forRecipes = 'forRecipes' in l ? l.forRecipes : []
         if (existing) {
-          // Already on the list: just note which recipe needs it too.
+          if (source === 'manual') {
+            // Added again by hand: increase how many ("milk" twice → 2 milk).
+            const sum = addQuantities(existing.quantity, l.quantity ?? '')
+            if (sum !== null) {
+              const { error } = await supabase.from('shopping_items').update({ quantity: sum }).eq('id', existing.id)
+              if (error) throw error
+              increased++
+            }
+            continue
+          }
+          // From a recipe/meal plan: just note which recipe needs it too.
           const merged = [...new Set([...existing.for_recipes, ...forRecipes])]
           if (merged.length !== existing.for_recipes.length) await supabase.from('shopping_items').update({ for_recipes: merged }).eq('id', existing.id)
           continue
@@ -251,7 +263,7 @@ export function useAddShopping() {
         const { error } = await supabase.from('shopping_items').insert(inserts)
         if (error) throw error
       }
-      return { added, alreadyThere: lines.length - added }
+      return { added, increased, alreadyThere: lines.length - added - increased }
     },
     onSettled: () => qc.invalidateQueries({ queryKey: foodKeys.shopping(fid) }),
   })
@@ -305,6 +317,22 @@ export function useMoveShopping() {
     },
     onMutate: ({ id, aisle }) => {
       qc.setQueryData<ShoppingItem[]>(foodKeys.shopping(fid), (old) => old?.map((i) => (i.id === id ? { ...i, aisle } : i)))
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: foodKeys.shopping(fid) }),
+  })
+}
+
+/** Change how many of an item (instant for everyone). */
+export function useSetQuantity() {
+  const fid = useFid()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, quantity }: { id: string; quantity: string }) => {
+      const { error } = await supabase.from('shopping_items').update({ quantity }).eq('id', id)
+      if (error) throw error
+    },
+    onMutate: ({ id, quantity }) => {
+      qc.setQueryData<ShoppingItem[]>(foodKeys.shopping(fid), (old) => old?.map((i) => (i.id === id ? { ...i, quantity } : i)))
     },
     onSettled: () => qc.invalidateQueries({ queryKey: foodKeys.shopping(fid) }),
   })

@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, ListChecks, Plus, Search, Star, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, ListChecks, Minus, Plus, Search, Star, Trash2 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState, type FormEvent } from 'react'
 import { Avatar } from '@/components/ui/Avatar'
@@ -13,7 +13,8 @@ import { useCurrentFamily } from '@/family/FamilyProvider'
 import { friendlyError } from '@/lib/errors'
 import { sectionFor, sectionLabel, sectionOfItem, STORE_NAME, STORE_SECTIONS, type Direction } from '@/lib/food/storeLayout'
 import { cleanText } from '@/lib/validation'
-import { useAddShopping, useDeleteShopping, useMoveShopping, useShopping, useTickShopping, type ShoppingItem } from '../api'
+import { addQuantities, parseCount, stepQuantity } from '@/lib/food/quantity'
+import { useAddShopping, useDeleteShopping, useMoveShopping, useSetQuantity, useShopping, useTickShopping, type ShoppingItem } from '../api'
 
 /** "2 x milk" / "milk x2" / "3 apples" → name + quantity */
 export function splitQuantity(input: string): { name: string; quantity: string } {
@@ -23,6 +24,29 @@ export function splitQuantity(input: string): { name: string; quantity: string }
   m = /^(.+?)\s+x\s*(\d+)$/i.exec(t)
   if (m) return { name: m[1], quantity: m[2] }
   return { name: t, quantity: '' }
+}
+
+/** − 2 + for how many of an item. */
+function Stepper({ item, small }: { item: ShoppingItem; small?: boolean }) {
+  const setQty = useSetQuantity()
+  const toast = useToast()
+  const c = parseCount(item.quantity)
+  const change = (d: number) =>
+    setQty.mutate({ id: item.id, quantity: stepQuantity(item.quantity, d) }, { onError: (e) => toast(friendlyError(e), 'error') })
+  const btn = clsx('flex shrink-0 items-center justify-center rounded-full bg-card-2 disabled:opacity-40', small ? 'size-8' : 'size-9')
+  return (
+    <span className="flex shrink-0 items-center gap-1" role="group" aria-label={`How many ${item.name}`}>
+      <button type="button" className={btn} onClick={() => change(-1)} disabled={c.n <= 1} aria-label={`One less ${item.name}`}>
+        <Minus className="size-4" aria-hidden />
+      </button>
+      <span className="min-w-6 text-center font-bold tabular-nums" aria-live="polite">
+        {c.n}
+      </span>
+      <button type="button" className={btn} onClick={() => change(1)} disabled={c.n >= 99} aria-label={`One more ${item.name}`}>
+        <Plus className="size-4" aria-hidden />
+      </button>
+    </span>
+  )
 }
 
 const ARROWS: Record<Direction, typeof ArrowUp> = { left: ArrowLeft, right: ArrowRight, up: ArrowUp, down: ArrowDown }
@@ -72,10 +96,14 @@ export function ShoppingTab() {
     e.preventDefault()
     const parsed = splitQuantity(text)
     if (!parsed.name) return
+    const before = open.find((x) => x.name.toLowerCase() === parsed.name.toLowerCase())
     setText('')
     try {
       const res = await add.mutateAsync({ lines: [{ ...parsed, aisle: sectionFor(parsed.name), forRecipes: [] }], source: 'manual' })
-      if (!res.added) toast(`${parsed.name} is already on the list`)
+      if (res.increased && before) {
+        const total = parseCount(addQuantities(before.quantity, parsed.quantity) ?? '').n
+        toast(`${before.name}: now ${total}`)
+      }
     } catch (err) {
       toast(friendlyError(err), 'error')
       setText(text)
@@ -97,10 +125,14 @@ export function ShoppingTab() {
           </button>
           <button className="min-w-0 flex-1 py-2 text-left" onClick={() => !i.checked && setMoving(i)} aria-label={i.checked ? i.name : `${i.name} — move to another aisle`}>
             <span className={clsx('block font-semibold', i.checked && 'text-ink-3 line-through')}>
-              {i.name} {i.quantity && <span className="font-normal text-ink-3">· {i.quantity}</span>}
+              {i.name}{' '}
+              {i.checked
+                ? i.quantity && <span className="font-normal text-ink-3">· {i.quantity}</span>
+                : parseCount(i.quantity).unit && <span className="font-normal text-ink-3">· {parseCount(i.quantity).unit}</span>}
             </span>
             {i.for_recipes.length > 0 && <span className="block truncate text-xs text-ink-3">For {i.for_recipes.join(', ')}</span>}
           </button>
+          {!i.checked && <Stepper item={i} />}
           {i.checked && by && <Avatar emoji={by.emoji} colour={by.colour} name={`Got by ${by.displayName}`} size="sm" />}
           {can('addShopping') && !i.checked && (
             <button onClick={() => del.mutate([i.id])} aria-label={`Remove ${i.name}`} className="flex size-10 items-center justify-center rounded-full text-ink-3 hover:bg-card-2">
@@ -274,6 +306,11 @@ function StoreListSheet({ open, onClose, items }: { open: boolean; onClose: () =
                       <span className={clsx('flex-1', on && 'font-semibold')}>{it.name}</span>
                       {it.regular && <Star className="size-4 fill-amber-400 text-amber-500" aria-label="Regular" />}
                     </label>
+                    {on && onList.get(it.name.toLowerCase()) && (
+                      <div className="-mt-1 mb-1 flex justify-end pr-2">
+                        <Stepper item={onList.get(it.name.toLowerCase())!} small />
+                      </div>
+                    )}
                   </li>
                 )
               })}

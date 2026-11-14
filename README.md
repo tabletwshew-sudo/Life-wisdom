@@ -166,6 +166,7 @@ The Food tab has five sections:
   - **Trying it out:** an admin can tap **Add example recipes** on an empty recipe book.
 - **🛒 Shopping:** one shared list, live for everyone, in **Woolworths (Eastgardens) walking order**: 0.1 to 0.7 around the fresh produce, then aisles 1 to 12, then **Coles**, then **Other**. The blue arrows from the printed sheet show which way to go.
   - **Woolworths list:** your whole printed list as a checklist. Tick what you need and it goes on the shopping list; untick it to take it off. Your usual items are starred ⭐ (try **Regulars only**), and you can search.
+  - **How many:** use **−** and **+** on any item, in the list or on the Woolworths checklist. Typing something that's already on the list adds to it ("milk" twice makes 2 milk).
   - **Typing items:** type things like "2 milk" and they go into the right aisle automatically. Ingredients from the meal plan do the same. Anything it doesn't recognise goes under **Other**.
   - **Wrong aisle?** Tap the item and pick where it really is, for example Coles.
   - **In the shop:** tap the circle to tick an item, and it moves to "In the trolley" with who got it. **Clear ticked** tidies up afterwards.
