@@ -5,7 +5,7 @@ import { supabase } from './supabase'
  * RLS guarantees this is only that family's data.
  */
 export async function exportFamilyData(familyId: string) {
-  const [family, members, categories, tasks, assignees, completions, eventTypes, events, attendees, exceptions, recipes, favourites, meals, shopping] = await Promise.all([
+  const [family, members, categories, tasks, assignees, completions, eventTypes, events, attendees, exceptions, recipes, favourites, meals, shopping, prefs] = await Promise.all([
     supabase.from('families').select('*').eq('id', familyId).single(),
     supabase.from('family_members').select('role, colour, joined_at, profiles(display_name, emoji)').eq('family_id', familyId),
     supabase.from('categories').select('*').eq('family_id', familyId),
@@ -20,11 +20,12 @@ export async function exportFamilyData(familyId: string) {
     supabase.from('recipe_favourites').select('*').eq('family_id', familyId),
     supabase.from('meal_plans').select('*').eq('family_id', familyId),
     supabase.from('shopping_items').select('*').eq('family_id', familyId),
+    supabase.from('notification_prefs').select('*').eq('family_id', familyId),
   ])
-  for (const r of [family, members, categories, tasks, assignees, completions, eventTypes, events, attendees, exceptions, recipes, favourites, meals, shopping]) if (r.error) throw r.error
+  for (const r of [family, members, categories, tasks, assignees, completions, eventTypes, events, attendees, exceptions, recipes, favourites, meals, shopping, prefs]) if (r.error) throw r.error
   return {
     exported_at: new Date().toISOString(),
-    format: 'family-hub-export/4',
+    format: 'family-hub-export/5',
     family: family.data,
     members: members.data,
     categories: categories.data,
@@ -39,6 +40,7 @@ export async function exportFamilyData(familyId: string) {
     recipe_favourites: favourites.data,
     meal_plans: meals.data,
     shopping_items: shopping.data,
+    my_notification_settings: prefs.data,
     note: 'Recipe photos are not included in this file; they stay in your Supabase storage.',
   }
 }

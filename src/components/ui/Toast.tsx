@@ -3,20 +3,27 @@ import { AnimatePresence, motion } from 'motion/react'
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
 
 type Kind = 'success' | 'error'
+interface ToastAction {
+  label: string
+  onClick: () => void
+}
 interface ToastItem {
   id: number
   kind: Kind
   text: string
+  action?: ToastAction
 }
+type Show = (text: string, kind?: Kind, action?: ToastAction) => void
 
-const ToastContext = createContext<(text: string, kind?: Kind) => void>(() => {})
+const ToastContext = createContext<Show>(() => {})
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([])
-  const show = useCallback((text: string, kind: Kind = 'success') => {
+  const show = useCallback<Show>((text, kind = 'success', action) => {
     const id = Date.now() + Math.random()
-    setItems((xs) => [...xs, { id, kind, text }])
-    setTimeout(() => setItems((xs) => xs.filter((x) => x.id !== id)), kind === 'error' ? 5000 : 2600)
+    setItems((xs) => [...xs, { id, kind, text, action }])
+    // Reminders (with an action) stay longer so there's time to tap them.
+    setTimeout(() => setItems((xs) => xs.filter((x) => x.id !== id)), action ? 8000 : kind === 'error' ? 5000 : 2600)
   }, [])
   return (
     <ToastContext.Provider value={show}>
@@ -40,7 +47,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               ) : (
                 <AlertTriangle className="size-5 shrink-0 text-amber-400" aria-hidden />
               )}
-              {t.text}
+              <span className="min-w-0 flex-1">{t.text}</span>
+              {t.action && (
+                <button
+                  onClick={() => {
+                    t.action!.onClick()
+                    setItems((xs) => xs.filter((x) => x.id !== t.id))
+                  }}
+                  className="ml-1 min-h-9 shrink-0 rounded-full bg-white/20 px-3 text-sm font-bold"
+                >
+                  {t.action.label}
+                </button>
+              )}
             </motion.div>
           ))}
         </AnimatePresence>

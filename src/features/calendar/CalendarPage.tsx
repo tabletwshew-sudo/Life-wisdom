@@ -8,6 +8,7 @@ import { Sheet } from '@/components/ui/Sheet'
 import { Spinner } from '@/components/ui/Spinner'
 import { Toggle } from '@/components/ui/Toggle'
 import { useToast } from '@/components/ui/Toast'
+import { Bell } from '@/features/notifications/Bell'
 import { useToggleCompletion } from '@/features/tasks/api'
 import { TaskDetailSheet } from '@/features/tasks/TaskDetailSheet'
 import { TaskSheet } from '@/features/tasks/TaskSheet'
@@ -137,6 +138,7 @@ export default function CalendarPage() {
           <button onClick={() => setSettingsOpen(true)} aria-label="Calendar options" className="flex size-11 items-center justify-center rounded-full bg-card shadow-sm">
             <SlidersHorizontal className="size-5" aria-hidden />
           </button>
+          <Bell className="md:hidden" />
           {canAdd && (
             <span className="hidden md:block">
               <Button size="md" icon={<Plus className="size-5" />} onClick={() => addEvent(view === 'year' ? today : date)}>

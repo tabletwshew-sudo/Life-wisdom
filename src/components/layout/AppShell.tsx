@@ -1,9 +1,11 @@
 import clsx from 'clsx'
-import { WifiOff } from 'lucide-react'
+import { Bell as BellIcon, WifiOff } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
 import { useEventRealtime } from '@/features/calendar/api'
 import { useFoodRealtime } from '@/features/food/api'
+import { UnreadPill } from '@/features/notifications/Bell'
+import { NotificationListener } from '@/features/notifications/NotificationListener'
 import { useTaskRealtime } from '@/features/tasks/api'
 import { useFamily } from '@/family/FamilyProvider'
 import { useOnline } from '@/hooks/useOnline'
@@ -18,6 +20,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-dvh md:flex">
+      {family && me && <NotificationListener />}
       {/* Side navigation — tablets and desktops */}
       <nav
         aria-label="Main"
@@ -46,6 +49,19 @@ export function AppShell() {
             {label}
           </NavLink>
         ))}
+        <NavLink
+          to="/notifications"
+          className={({ isActive }) =>
+            clsx(
+              'mt-2 flex min-h-12 items-center gap-3 rounded-xl px-3 font-semibold transition',
+              isActive ? 'bg-brand-100 text-brand-700 dark:bg-brand-700/30 dark:text-brand-200' : 'text-ink-2 hover:bg-card-2',
+            )
+          }
+        >
+          <BellIcon className="size-6" aria-hidden />
+          Notifications
+          <UnreadPill />
+        </NavLink>
         {me && (
           <NavLink to="/more/profile" className="mt-auto flex items-center gap-3 rounded-xl p-2 hover:bg-card-2">
             <Avatar emoji={me.emoji} colour={me.colour} size="sm" />

@@ -2,9 +2,9 @@
 
 A free family organiser for chores, a shared calendar, meals and shopping. It works in any web browser, and you can install it on an iPhone from Safari with **Add to Home Screen**. You don't need an App Store listing or a paid Apple Developer account.
 
-> **Build status:** Phases 1–4 of 6 are finished: sign-in, families and invites, the installable app, **chores**
-> (repeating tasks, ticks, crosses, NEW badges, points and streaks), the **shared calendar**, and **food & drink** (recipes, meal planner,
-> shopping list, ideas). Notifications and Encryption arrive in phases 5–6.
+> **Build status:** Phases 1–5 of 6 are finished: sign-in, families and invites, the installable app, **chores**
+> (repeating tasks, ticks, crosses, NEW badges, points and streaks), the **shared calendar**, **food & drink** (recipes, meal planner,
+> shopping list, ideas) and **notifications** (notification centre, reminders, push on iPhone). Encryption arrives in phase 6.
 
 ---
 
@@ -43,6 +43,7 @@ You don't need to install anything on your computer to get it running.
    | 2 | `20261114000200_tasks.sql` | Chores, categories, ticks |
    | 3 | `20261114000300_events.sql` | Calendar events, event types, attendees |
    | 4 | `20261114000400_food.sql` | Recipes, meal plans, shopping list, private photo storage |
+   | 5 | `20261114000500_notifications.sql` | Notifications, reminders, push devices |
 
 > Later phases add more files. Each time you update, run only the new file(s), in order. Running a file twice is safe.
 
@@ -163,8 +164,50 @@ The Food tab has five sections:
 
 **Who can do what:** by default kids (Members) can add recipes, plan meals and add shopping items. Admins can switch these off in **More** → **Family settings**. Anyone in the family can tick shopping items.
 
-## Step 7: Push notifications on iPhone
-*Arrives in Phase 5.* It needs iOS 16.4 or newer, and the app must be installed to the Home Screen (Step 5).
+## Notifications and reminders
+
+**These work straight away, with no setup:**
+- **🔔 Notification centre:** the bell in the top corner on phones, or **Notifications** in the side menu on computers. It shows chores someone gave you, events you were added to, reminders and your daily summary. Tap one to open it.
+- **Live pop-ups:** when someone gives you a chore or adds you to an event while the app is open, it pops up straight away.
+- **Reminders inside the app:** when you set a reminder on a chore or event, it pops up in Family Hub at that time, as long as the app or tab is open.
+- **Your own choices:** go to **More** → **Notifications** to choose a daily summary (and its time), new chores and events, chore reminders, event reminders and new recipes. These are just for you.
+
+**Push notifications** pop up even when Family Hub is closed, including on iPhone. They need the one-off setup in Step 7.
+
+## Step 7: Push notifications (one-off setup, about 15 minutes, free)
+
+You'll create a pair of keys, add them to Vercel and Supabase, deploy a small Supabase function, and start a once-a-minute timer. All of it is free.
+
+1. **Create your keys.** Open Family Hub as an admin and go to **More** → **Notifications** → **Set up push (admins)** → **Create my keys**. Keep that page open: it shows each value below with a **copy** button, and the keys never leave your device.
+2. **Vercel:** go to your project → **Settings** → **Environment Variables** and add `VITE_VAPID_PUBLIC_KEY` with the public key. Then go to **Deployments** → **⋯** → **Redeploy**.
+3. **Supabase:** go to **Edge Functions** → **Secrets** and add these four:
+   - `VAPID_PUBLIC_KEY`
+   - `VAPID_PRIVATE_KEY` (keep this one secret)
+   - `VAPID_SUBJECT` (your Family Hub web address)
+   - `CRON_SECRET` (keep this one secret)
+4. **Deploy the reminder function.** The easiest way is the included GitHub Action:
+   1. On supabase.com, open your account menu → **Access Tokens** → **Generate new token**, and copy it.
+   2. In GitHub, open your repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**. Add two:
+      - `SUPABASE_ACCESS_TOKEN`: the token you just copied.
+      - `SUPABASE_PROJECT_REF`: the `abcdefgh` part of `https://abcdefgh.supabase.co`.
+   3. Go to the **Actions** tab → **Deploy reminder function** → **Run workflow**. Wait for the green tick.
+
+   From now on, the function redeploys itself whenever it changes.
+   *No GitHub Actions?* In Supabase go to **Edge Functions** → **Deploy a new function** → **Via Editor**. Name it `send-reminders`, create two files, `index.ts` and `webpush.ts`, and paste in the contents of the files with those names from `supabase/functions/send-reminders/`. Then open the function's settings and turn **Verify JWT** off. (The function checks its own secret instead.)
+5. **Start the timer.** Copy the SQL from step 4 on the setup page. It's already filled in with your project address and secret. In Supabase go to **SQL Editor** → **New query**, paste it and click **Run**. (The same SQL is in `supabase/setup/schedule-reminders.sql` if you'd rather fill it in by hand.)
+6. **Turn it on, on each device:**
+   - **iPhone/iPad:** open Family Hub **from the Home Screen icon** (see Step 5), then go to **More** → **Notifications** → **Turn on notifications** → **Allow** → **Send a test**.
+   - **Android, Windows or Mac (Chrome, Edge or Firefox):** do the same in the browser.
+
+**iPhone limitations to know about:**
+- Push needs **iOS 16.4 or newer** and the app **added to the Home Screen**. In a normal Safari tab, reminders only appear inside the app while it's open.
+- Each device has to be turned on separately, and each person turns on their own devices.
+- If you remove the app from the Home Screen, or turn notifications off in iPhone Settings, that device stops getting them. Turn them on again in the app.
+- Focus modes, Do Not Disturb and Low Power Mode can delay or hide notifications.
+- Reminders are checked once a minute, so they can arrive up to a minute late.
+- Notifications show titles and times, but never private notes, and never locations when encryption is on (Phase 6).
+
+To stop all reminders, run `select cron.unschedule('family-hub-reminders');` in the SQL Editor.
 
 ---
 
@@ -199,6 +242,7 @@ Supabase's free built-in email only reaches members of your Supabase team. To em
 Without this, if a family member forgets their password, the project owner can go to Supabase → **Authentication** → **Users**, find that person, and delete them. The person then signs up again and rejoins with the invite code.
 
 ## Free plan notes
+- **Edge Functions:** the reminder timer uses about 43,000 function calls a month. The free plan allows 500,000.
 - **Inactivity pause:** a free Supabase project pauses after about **7 days with no activity**. Everyday family use keeps it awake. If it does pause, open the Supabase dashboard and click **Restore**.
 - **Free limits:** 500 MB of database and 1 GB of file storage, which is plenty for a family.
 
@@ -221,6 +265,7 @@ npm run dev                 # http://localhost:5173
 | `npm run test:integration` | RLS, permission and recurrence tests against the local Supabase |
 | `npm run db:reset` | Recreate the local database from `supabase/migrations` |
 | `npm run db:types` | Regenerate `src/lib/database.types.ts` |
+| `npx supabase functions serve --env-file supabase/functions/.env.local` | Run the reminder function locally |
 
 ### Folder structure
 ```
@@ -239,8 +284,12 @@ src/
   lib/tasks/            recurrence + status rules (pure functions, unit-tested)
   lib/calendar/         event expansion, multi-day spans, month grids (unit-tested)
   lib/food/             ingredient parsing/merging, aisles, built-in suggestions (unit-tested)
-  sw.ts                 service worker (offline support, and push later)
+  features/notifications/  notification centre, settings, push setup helper
+  sw.ts                 service worker (offline support, push notifications)
 supabase/migrations/    the database schema and RLS policies (run in order)
+supabase/functions/send-reminders/  Edge Function: reminders + Web Push (no dependencies)
+supabase/setup/         one-off SQL (the reminder timer)
+.github/workflows/      deploys the Edge Function
 tests/integration/      RLS tests against a real Supabase
 vercel.json             hosting, security headers and SPA routing
 ```

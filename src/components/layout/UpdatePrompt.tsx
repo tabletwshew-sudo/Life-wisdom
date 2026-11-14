@@ -1,8 +1,21 @@
 import { RefreshCw } from 'lucide-react'
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 
 /** Registers the service worker and offers a reload when a new version is deployed. */
 export function UpdatePrompt() {
+  const navigate = useNavigate()
+  // Notification taps: the service worker asks us to open a page.
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return
+    const onMessage = (e: MessageEvent) => {
+      const url = e.data?.type === 'navigate' && typeof e.data.url === 'string' ? e.data.url : null
+      if (url && url.startsWith('/') && !url.startsWith('//')) navigate(url)
+    }
+    navigator.serviceWorker.addEventListener('message', onMessage)
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage)
+  }, [navigate])
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,

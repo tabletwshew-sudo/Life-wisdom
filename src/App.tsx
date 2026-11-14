@@ -12,6 +12,9 @@ import SignUp from '@/pages/auth/SignUp'
 import Today from '@/pages/Today'
 import Welcome from '@/pages/Welcome'
 
+const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage'))
+const NotificationSettings = lazy(() => import('@/features/notifications/NotificationSettings'))
+const PushSetup = lazy(() => import('@/features/notifications/PushSetup'))
 const FoodPage = lazy(() => import('@/features/food/FoodPage'))
 const RecipePage = lazy(() => import('@/features/food/RecipePage'))
 const CalendarPage = lazy(() => import('@/features/calendar/CalendarPage'))
@@ -116,6 +119,14 @@ export default function App() {
                 }
               />
               <Route
+                path="notifications"
+                element={
+                  <Suspense fallback={<Spinner />}>
+                    <NotificationsPage />
+                  </Suspense>
+                }
+              />
+              <Route
                 path="food/recipe/:id"
                 element={
                   <Suspense fallback={<Spinner />}>
@@ -136,6 +147,8 @@ export default function App() {
                       <Route path="install" element={<InstallHelp />} />
                       <Route path="categories" element={<Categories />} />
                       <Route path="event-types" element={<EventTypes />} />
+                      <Route path="notifications" element={<NotificationSettings />} />
+                      <Route path="notifications/setup" element={<PushSetup />} />
                       <Route path="*" element={<Navigate to="/more" replace />} />
                     </Routes>
                   </Suspense>

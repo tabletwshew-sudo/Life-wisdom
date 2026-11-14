@@ -277,6 +277,64 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"notification_prefs": {
+                  Row: {
+                    "assignment_alerts": boolean,"daily_summary": boolean,"daily_summary_time": string,"event_reminders": boolean,"family_id": string,"new_recipe_alerts": boolean,"task_reminders": boolean,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "assignment_alerts"?: boolean,"daily_summary"?: boolean,"daily_summary_time"?: string,"event_reminders"?: boolean,"family_id": string,"new_recipe_alerts"?: boolean,"task_reminders"?: boolean,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "assignment_alerts"?: boolean,"daily_summary"?: boolean,"daily_summary_time"?: string,"event_reminders"?: boolean,"family_id"?: string,"new_recipe_alerts"?: boolean,"task_reminders"?: boolean,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notification_prefs_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notification_prefs_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"notifications": {
+                  Row: {
+                    "actor_id": string | null,"body": string,"created_at": string,"dedupe_key": string | null,"family_id": string,"id": string,"kind": string,"link": string,"pushed_at": string | null,"read_at": string | null,"title": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor_id"?: string | null,"body"?: string,"created_at"?: string,"dedupe_key"?: string | null,"family_id": string,"id"?: string,"kind": string,"link"?: string,"pushed_at"?: string | null,"read_at"?: string | null,"title": string,"user_id": string
+                  }
+                  Update: {
+                    "actor_id"?: string | null,"body"?: string,"created_at"?: string,"dedupe_key"?: string | null,"family_id"?: string,"id"?: string,"kind"?: string,"link"?: string,"pushed_at"?: string | null,"read_at"?: string | null,"title"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notifications_actor_id_fkey"
+      columns: ["actor_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "created_at": string,"display_name": string,"emoji": string,"id": string,"updated_at": string
@@ -290,6 +348,26 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"push_subscriptions": {
+                  Row: {
+                    "auth": string,"created_at": string,"device_label": string,"endpoint": string,"id": string,"last_used_at": string | null,"p256dh": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "auth": string,"created_at"?: string,"device_label"?: string,"endpoint": string,"id"?: string,"last_used_at"?: string | null,"p256dh": string,"user_id": string
+                  }
+                  Update: {
+                    "auth"?: string,"created_at"?: string,"device_label"?: string,"endpoint"?: string,"id"?: string,"last_used_at"?: string | null,"p256dh"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "push_subscriptions_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"recipe_favourites": {
                   Row: {
@@ -618,6 +696,12 @@ isOneToOne: false
 "family_today":
 { Args: { "fid": string }; Returns: string
                            },
+"friendly_time":
+{ Args: { "t": string }; Returns: string
+                           },
+"generate_due_notifications":
+{ Args: { "p_now"?: string,"p_window"?: string }; Returns: number
+                           },
 "generate_invite_code":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -633,14 +717,41 @@ isOneToOne: false
 "mark_seen":
 { Args: { "p_family": string,"p_ids": (string)[],"p_type": string }; Returns: undefined
                            },
+"notify":
+{ Args: { "p_actor": string,"p_body": string,"p_dedupe": string,"p_family": string,"p_kind": string,"p_link": string,"p_title": string,"p_user": string }; Returns: undefined
+                           },
 "occurs_on":
 { Args: { "p_date": string,"p_days": (number)[],"p_repeat": string,"p_start": string,"p_until": string }; Returns: boolean
                            },
+"prefs_for":
+{ Args: { "p_family": string,"p_user": string }; Returns: {
+              "assignment_alerts": boolean,
+"daily_summary": boolean,
+"daily_summary_time": string,
+"event_reminders": boolean,
+"family_id": string,
+"new_recipe_alerts": boolean,
+"task_reminders": boolean,
+"updated_at": string,
+"user_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "notification_prefs"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "regenerate_invite_code":
 { Args: { "p_family": string }; Returns: string
                            },
 "remove_member":
 { Args: { "p_family": string,"p_user": string }; Returns: undefined
+                           },
+"safe_text":
+{ Args: { "t": string }; Returns: string
+                           },
+"send_test_notification":
+{ Args: { "p_family": string }; Returns: string
                            },
 "set_event_attendees":
 { Args: { "p_attendees": (string)[],"p_event": string }; Returns: undefined
