@@ -13,6 +13,8 @@ import ComingSoon from '@/pages/ComingSoon'
 import Today from '@/pages/Today'
 import Welcome from '@/pages/Welcome'
 
+const TasksPage = lazy(() => import('@/features/tasks/TasksPage'))
+const Categories = lazy(() => import('@/pages/more/Categories'))
 const More = lazy(() => import('@/pages/more/More'))
 const Profile = lazy(() => import('@/pages/more/Profile'))
 const FamilyMembers = lazy(() => import('@/pages/more/FamilyMembers'))
@@ -86,7 +88,14 @@ export default function App() {
           <Route element={<RequireFamily />}>
             <Route element={<AppShell />}>
               <Route index element={<Today />} />
-              <Route path="tasks" element={<ComingSoon title="Tasks" emoji="✅" phase={2} />} />
+              <Route
+                path="tasks"
+                element={
+                  <Suspense fallback={<Spinner />}>
+                    <TasksPage />
+                  </Suspense>
+                }
+              />
               <Route path="calendar" element={<ComingSoon title="Calendar" emoji="📅" phase={3} />} />
               <Route path="food" element={<ComingSoon title="Food & Drink" emoji="🍝" phase={4} />} />
               <Route
@@ -100,6 +109,7 @@ export default function App() {
                       <Route path="family-settings" element={<FamilySettings />} />
                       <Route path="privacy" element={<Privacy />} />
                       <Route path="install" element={<InstallHelp />} />
+                      <Route path="categories" element={<Categories />} />
                       <Route path="*" element={<Navigate to="/more" replace />} />
                     </Routes>
                   </Suspense>

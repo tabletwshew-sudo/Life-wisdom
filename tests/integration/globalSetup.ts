@@ -12,6 +12,7 @@ export default function setup(project: TestProject) {
   project.provide('supabaseUrl', status.API_URL)
   project.provide('anonKey', status.PUBLISHABLE_KEY || status.ANON_KEY)
   project.provide('serviceKey', status.SECRET_KEY || status.SERVICE_ROLE_KEY)
+  project.provide('dbUrl', status.DB_URL)
 }
 
 declare module 'vitest' {
@@ -19,5 +20,6 @@ declare module 'vitest' {
     supabaseUrl: string
     anonKey: string
     serviceKey: string
+    dbUrl: string
   }
 }

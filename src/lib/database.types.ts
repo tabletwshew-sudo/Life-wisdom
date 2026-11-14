@@ -23,7 +23,33 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "families": {
+            "categories": {
+                  Row: {
+                    "colour": string,"created_at": string,"created_by": string | null,"emoji": string,"family_id": string,"id": string,"name": string,"sort": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "colour"?: string,"created_at"?: string,"created_by"?: string | null,"emoji"?: string,"family_id": string,"id"?: string,"name": string,"sort"?: number
+                  }
+                  Update: {
+                    "colour"?: string,"created_at"?: string,"created_by"?: string | null,"emoji"?: string,"family_id"?: string,"id"?: string,"name"?: string,"sort"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "categories_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "categories_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"families": {
                   Row: {
                     "created_at": string,"created_by": string | null,"encryption_enabled": boolean,"id": string,"members_can_add_events": boolean,"members_can_add_recipes": boolean,"members_can_add_shopping": boolean,"members_can_add_tasks": boolean,"name": string,"points_enabled": boolean,"timezone": string,"week_starts_on": number
                   }
@@ -111,17 +137,200 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"seen_items": {
+                  Row: {
+                    "family_id": string,"item_id": string,"item_type": string,"seen_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "family_id": string,"item_id": string,"item_type": string,"seen_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "family_id"?: string,"item_id"?: string,"item_type"?: string,"seen_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "seen_items_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "seen_items_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"task_assignees": {
+                  Row: {
+                    "assigned_at": string,"assigned_by": string | null,"family_id": string,"task_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "assigned_at"?: string,"assigned_by"?: string | null,"family_id": string,"task_id": string,"user_id": string
+                  }
+                  Update: {
+                    "assigned_at"?: string,"assigned_by"?: string | null,"family_id"?: string,"task_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_assignees_assigned_by_fkey"
+      columns: ["assigned_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_assignees_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_assignees_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_assignees_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"task_completions": {
+                  Row: {
+                    "completed_at": string,"completed_by": string | null,"family_id": string,"for_user": string | null,"id": string,"occurrence_date": string,"points": number,"task_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "completed_at"?: string,"completed_by"?: string | null,"family_id": string,"for_user"?: string | null,"id"?: string,"occurrence_date": string,"points"?: number,"task_id": string
+                  }
+                  Update: {
+                    "completed_at"?: string,"completed_by"?: string | null,"family_id"?: string,"for_user"?: string | null,"id"?: string,"occurrence_date"?: string,"points"?: number,"task_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_completions_completed_by_fkey"
+      columns: ["completed_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_completions_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_completions_for_user_fkey"
+      columns: ["for_user"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_completions_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"tasks": {
+                  Row: {
+                    "archived_at": string | null,"category_id": string | null,"colour": string | null,"completion_mode": string,"created_at": string,"created_by": string | null,"due_time": string | null,"emoji": string,"family_id": string,"id": string,"notes": string,"points": number,"reminder_minutes": number | null,"repeat": string,"repeat_days": (number)[],"repeat_until": string | null,"start_date": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"category_id"?: string | null,"colour"?: string | null,"completion_mode"?: string,"created_at"?: string,"created_by"?: string | null,"due_time"?: string | null,"emoji"?: string,"family_id": string,"id"?: string,"notes"?: string,"points"?: number,"reminder_minutes"?: number | null,"repeat"?: string,"repeat_days"?: (number)[],"repeat_until"?: string | null,"start_date": string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"category_id"?: string | null,"colour"?: string | null,"completion_mode"?: string,"created_at"?: string,"created_by"?: string | null,"due_time"?: string | null,"emoji"?: string,"family_id"?: string,"id"?: string,"notes"?: string,"points"?: number,"reminder_minutes"?: number | null,"repeat"?: string,"repeat_days"?: (number)[],"repeat_until"?: string | null,"start_date"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tasks_category_id_fkey"
+      columns: ["category_id"]
+isOneToOne: false
+      referencedRelation: "categories"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            "clean_text":
+            "add_default_categories":
+{ Args: { "fid": string }; Returns: undefined
+                           },
+"apply_task_fields":
+{ Args: { "d": Json,"t": Omit<Database["public"]['Tables']["tasks"]['Row'], Database["public"]['Tables']["tasks"]['ComputedFields']> }; Returns: {
+              "archived_at": string | null,
+"category_id": string | null,
+"colour": string | null,
+"completion_mode": string,
+"created_at": string,
+"created_by": string | null,
+"due_time": string | null,
+"emoji": string,
+"family_id": string,
+"id": string,
+"notes": string,
+"points": number,
+"reminder_minutes": number | null,
+"repeat": string,
+"repeat_days": (number)[],
+"repeat_until": string | null,
+"start_date": string,
+"title": string,
+"updated_at": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "tasks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"can_add":
+{ Args: { "fid": string,"what": string }; Returns: boolean
+                           },
+"can_complete":
+{ Args: { "p_for_user": string,"tid": string }; Returns: boolean
+                           },
+"can_manage_task":
+{ Args: { "tid": string }; Returns: boolean
+                           },
+"clean_text":
 { Args: { "max_len": number,"t": string }; Returns: string
                            },
 "create_family":
 { Args: { "p_colour"?: string,"p_name": string,"p_timezone"?: string }; Returns: string
+                           },
+"create_task":
+{ Args: { "p_assignees"?: (string)[],"p_data": Json,"p_family": string }; Returns: string
+                           },
+"delete_task":
+{ Args: { "p_keep_history"?: boolean,"p_task": string }; Returns: undefined
+                           },
+"family_today":
+{ Args: { "fid": string }; Returns: string
                            },
 "generate_invite_code":
 { Args: Record<PropertyKey, never>; Returns: string
@@ -135,17 +344,35 @@ isOneToOne: false
 "join_family":
 { Args: { "p_code": string,"p_colour"?: string }; Returns: string
                            },
+"mark_seen":
+{ Args: { "p_family": string,"p_ids": (string)[],"p_type": string }; Returns: undefined
+                           },
+"occurs_on":
+{ Args: { "p_date": string,"p_days": (number)[],"p_repeat": string,"p_start": string,"p_until": string }; Returns: boolean
+                           },
 "regenerate_invite_code":
 { Args: { "p_family": string }; Returns: string
                            },
 "remove_member":
 { Args: { "p_family": string,"p_user": string }; Returns: undefined
                            },
+"set_task_assignees":
+{ Args: { "p_assignees": (string)[],"p_task": string }; Returns: undefined
+                           },
 "shares_family_with":
 { Args: { "uid": string }; Returns: boolean
                            },
+"task_occurs_on":
+{ Args: { "p_date": string,"p_task": Omit<Database["public"]['Tables']["tasks"]['Row'], Database["public"]['Tables']["tasks"]['ComputedFields']> }; Returns: boolean
+                           },
 "update_member":
 { Args: { "p_colour"?: string,"p_family": string,"p_role"?: Database["public"]['Enums']["family_role"],"p_user": string }; Returns: undefined
+                           },
+"update_task":
+{ Args: { "p_assignees"?: (string)[],"p_data": Json,"p_task": string }; Returns: string
+                           },
+"user_in_family":
+{ Args: { "fid": string,"uid": string }; Returns: boolean
                            }
           }
           Enums: {

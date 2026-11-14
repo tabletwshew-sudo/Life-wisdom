@@ -43,7 +43,7 @@ export default function More() {
             {isAdmin && (
               <SettingsRow to="/more/family-settings" icon={<SlidersHorizontal className="size-5" />} iconBg="bg-[#009E73]" label="Family settings" />
             )}
-            <SettingsRow icon={<Tags className="size-5" />} iconBg="bg-[#E69F00]" label="Colour categories" badge="Phase 2" />
+            <SettingsRow to="/more/categories" icon={<Tags className="size-5" />} iconBg="bg-[#E69F00]" label="Colour categories" />
             {families.length > 1 &&
               families
                 .filter((f) => f.id !== family.id)

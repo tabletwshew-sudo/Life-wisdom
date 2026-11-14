@@ -64,3 +64,36 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
   }
   return out
 }
+
+export const REPEATS = ['once', 'daily', 'weekdays', 'weekly', 'fortnightly', 'monthly', 'yearly'] as const
+
+export const taskSchema = z
+  .object({
+    title: z
+      .string()
+      .transform((v) => cleanText(v, 80))
+      .pipe(z.string().min(1, 'Give the task a name')),
+    notes: z.string().transform((v) => cleanText(v, 2000)),
+    emoji: z
+      .string()
+      .transform((v) => cleanText(v, 16))
+      .pipe(z.string().min(1, 'Pick an emoji')),
+    category_id: z.string().uuid().nullable(),
+    colour: hexColour.nullable(),
+    start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date'),
+    due_time: z
+      .string()
+      .regex(/^\d{2}:\d{2}(:\d{2})?$/)
+      .nullable(),
+    repeat: z.enum(REPEATS),
+    repeat_days: z.array(z.number().int().min(0).max(6)),
+    repeat_until: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullable(),
+    completion_mode: z.enum(['any', 'each']),
+    points: z.number().int().min(0).max(100),
+    reminder_minutes: z.number().int().min(0).max(10080).nullable(),
+  })
+  .refine((t) => t.repeat !== 'weekdays' || t.repeat_days.length > 0, { message: 'Pick at least one day', path: ['repeat_days'] })
+  .refine((t) => !t.repeat_until || t.repeat_until >= t.start_date, { message: '“Until” must be after the start date', path: ['repeat_until'] })

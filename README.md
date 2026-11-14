@@ -2,8 +2,8 @@
 
 A free family organiser for chores, a shared calendar, meals and shopping. It works in any web browser, and you can install it on an iPhone from Safari with **Add to Home Screen**. You don't need an App Store listing or a paid Apple Developer account.
 
-> **Build status:** Phase 1 of 6 is finished: sign in, families, invites, navigation and the installable app.
-> Tasks, Calendar, Food, Notifications and Encryption arrive in later phases.
+> **Build status:** Phases 1–2 of 6 are finished: sign-in, families and invites, the installable app, and **chores**
+> (repeating tasks, ticks, crosses, NEW badges, points and streaks). Calendar, Food, Notifications and Encryption arrive in later phases.
 
 ---
 
@@ -32,10 +32,16 @@ You don't need to install anything on your computer to get it running.
 
 1. In your Supabase project, click **SQL Editor** in the left sidebar.
 2. Click **+ New query**.
-3. Open the file [`supabase/migrations/20261114000100_core.sql`](supabase/migrations/20261114000100_core.sql) in this repository. On GitHub, click the file, then the **Copy raw file** button.
+3. Open the first file in [`supabase/migrations/`](supabase/migrations/) in this repository. On GitHub, click the file, then the **Copy raw file** button.
 4. Paste it into the SQL Editor and click **Run** (bottom right). You should see *"Success. No rows returned"*.
+5. Click **+ New query** again and repeat for the **next** file. Run them **in order**:
 
-> Later phases add more files in `supabase/migrations/`. Run each new file the same way, **in order** (they're numbered by date). Running a file twice is safe.
+   | Order | File | Adds |
+   |---|---|---|
+   | 1 | `20261114000100_core.sql` | Families, members, invites |
+   | 2 | `20261114000200_tasks.sql` | Chores, categories, ticks |
+
+> Later phases add more files. Each time you update, run only the new file(s), in order. Running a file twice is safe.
 
 ### Turn off email confirmation (important)
 Supabase's built-in email sender only delivers to people on your Supabase team, so other family members would never get the confirmation email.
@@ -96,6 +102,23 @@ Android, Windows and Mac: in Chrome or Edge, use the install icon in the address
 
 Tap **Make a new code** at any time to stop the old link working.
 
+## Using chores (Tasks)
+
+- **Add a chore:** tap the big **+** button (on a computer, **New task**). Choose an emoji, who it's for, how often it repeats, a time, a category or colour, a reminder, points and notes.
+  - **Repeat options:** once, every day, some days (pick weekdays), weekly, fortnightly, monthly, or yearly.
+  - **More than one person:** choose *Each person does it* (everyone gets their own tick, like "make your bed") or *Anyone can do it* (one tick for all, like "take out the bins").
+- **Tick it off:** tap the circle, or **swipe the card right**. Tap again to undo. Everyone sees ticks appear live.
+- **What the symbols mean** (each has an icon as well as a colour):
+  - ✅ **Green tick:** done. Tap the chore to see who did it and when.
+  - ❌ **Red cross:** the day ended and it wasn't done. Crosses stay in the history.
+  - ✨ **NEW:** someone added or assigned it to you in the last week. It disappears once you've seen it.
+- **Views:** **By day** (swipe the week strip or use the arrows), **By person** (progress, 🔥 streaks and ⭐ points this week), or **All** (every chore and how it repeats). Tap the people and category buttons to filter.
+- **Kids (Members)** can only tick their own chores. Admins can tick anyone's. Admins choose whether kids may add chores in **More** → **Family settings**.
+- **Editing a repeating chore** never changes the past. If you change *when* it happens or *who* does it, history up to yesterday stays as it was.
+- **Deleting a repeating chore** gives you two options: *Stop from today* keeps past ticks and crosses, or *Delete everything*.
+- **Trying it out:** on an empty Tasks page, an admin can tap **Add example chores**.
+- **Categories:** go to **More** → **Colour categories** to add, rename or recolour them.
+
 ## Step 7: Push notifications on iPhone
 *Arrives in Phase 5.* It needs iOS 16.4 or newer, and the app must be installed to the Home Screen (Step 5).
 
@@ -151,7 +174,7 @@ npm run dev                 # http://localhost:5173
 | `npm run dev` | Start the dev server |
 | `npm run build` | Type-check and build to `dist/`, including the PWA icons and splash screens |
 | `npm test` | Unit tests (Vitest) |
-| `npm run test:integration` | RLS and security tests against the local Supabase |
+| `npm run test:integration` | RLS, permission and recurrence tests against the local Supabase |
 | `npm run db:reset` | Recreate the local database from `supabase/migrations` |
 | `npm run db:types` | Regenerate `src/lib/database.types.ts` |
 
@@ -164,8 +187,10 @@ src/
   family/               current family, members, permissions and live sync
   components/ui/        Button, Field, Sheet (bottom sheet), Avatar, pickers…
   components/layout/    AppShell (bottom tabs on phones, side nav on larger screens)
+  features/tasks/       Tasks page, task sheets, rows, data hooks
   pages/                one file per screen
-  lib/                  Supabase client, validation, colours, generated DB types
+  lib/                  Supabase client, validation, colours, dates, generated DB types
+  lib/tasks/            recurrence + status rules (pure functions, unit-tested)
   sw.ts                 service worker (offline support, and push later)
 supabase/migrations/    the database schema and RLS policies (run in order)
 tests/integration/      RLS tests against a real Supabase
@@ -173,3 +198,6 @@ vercel.json             hosting, security headers and SPA routing
 ```
 
 **Stack:** React 19, TypeScript, Vite, Tailwind CSS 4, vite-plugin-pwa (Workbox), TanStack Query (with an offline cache), Supabase (Auth, Postgres, Realtime) and Motion.
+
+### How repeating chores work (technical)
+A task stores a repeat rule. Each day the rule matches is an *occurrence*. Ticking writes a row to `task_completions` for that date (and person), so each day is independent. A past occurrence with no completion is *missed*. Because status is worked out from the rule and the ticks, history needs no background job and never gets lost. The rule exists in TypeScript (`src/lib/tasks/recurrence.ts`) and in SQL (`public.occurs_on`), and an integration test checks that they agree on every day across three years. The server also refuses ticks for days a task isn't due, for future days, and for other people's tasks.

@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { WifiOff } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
+import { useTaskRealtime } from '@/features/tasks/api'
 import { useFamily } from '@/family/FamilyProvider'
 import { useOnline } from '@/hooks/useOnline'
 import { NAV } from './nav'
@@ -9,6 +10,7 @@ import { NAV } from './nav'
 export function AppShell() {
   const online = useOnline()
   const { family, me } = useFamily()
+  useTaskRealtime()
 
   return (
     <div className="min-h-dvh md:flex">

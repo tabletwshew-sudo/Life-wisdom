@@ -102,7 +102,12 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, () => {
         qc.invalidateQueries({ queryKey: ['members', family.id] })
       })
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          qc.invalidateQueries({ queryKey: ['members', family.id] })
+          qc.invalidateQueries({ queryKey: ['families', user.id] })
+        }
+      })
     return () => {
       supabase.removeChannel(channel)
     }

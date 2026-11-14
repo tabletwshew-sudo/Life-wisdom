@@ -5,6 +5,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { AuthProvider } from './auth/AuthProvider'
 import { UpdatePrompt } from './components/layout/UpdatePrompt'
 import { ToastProvider } from './components/ui/Toast'
@@ -31,10 +32,13 @@ const persister = createSyncStoragePersister({ storage: window.localStorage, key
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <ErrorBoundary>
     {isConfigured ? (
       <PersistQueryClientProvider
         client={queryClient}
         persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 * 7, buster: __APP_VERSION__ }}
+        // Show saved data instantly, then refresh it from the server.
+        onSuccess={() => queryClient.invalidateQueries()}
       >
         <BrowserRouter>
           <ToastProvider>
@@ -50,5 +54,6 @@ createRoot(document.getElementById('root')!).render(
     ) : (
       <NotConfigured />
     )}
+    </ErrorBoundary>
   </StrictMode>,
 )
