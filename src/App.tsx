@@ -13,6 +13,8 @@ import ComingSoon from '@/pages/ComingSoon'
 import Today from '@/pages/Today'
 import Welcome from '@/pages/Welcome'
 
+const CalendarPage = lazy(() => import('@/features/calendar/CalendarPage'))
+const EventTypes = lazy(() => import('@/pages/more/EventTypes'))
 const TasksPage = lazy(() => import('@/features/tasks/TasksPage'))
 const Categories = lazy(() => import('@/pages/more/Categories'))
 const More = lazy(() => import('@/pages/more/More'))
@@ -96,7 +98,14 @@ export default function App() {
                   </Suspense>
                 }
               />
-              <Route path="calendar" element={<ComingSoon title="Calendar" emoji="📅" phase={3} />} />
+              <Route
+                path="calendar"
+                element={
+                  <Suspense fallback={<Spinner />}>
+                    <CalendarPage />
+                  </Suspense>
+                }
+              />
               <Route path="food" element={<ComingSoon title="Food & Drink" emoji="🍝" phase={4} />} />
               <Route
                 path="more/*"
@@ -110,6 +119,7 @@ export default function App() {
                       <Route path="privacy" element={<Privacy />} />
                       <Route path="install" element={<InstallHelp />} />
                       <Route path="categories" element={<Categories />} />
+                      <Route path="event-types" element={<EventTypes />} />
                       <Route path="*" element={<Navigate to="/more" replace />} />
                     </Routes>
                   </Suspense>

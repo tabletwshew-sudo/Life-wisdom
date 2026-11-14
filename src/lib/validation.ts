@@ -97,3 +97,36 @@ export const taskSchema = z
   })
   .refine((t) => t.repeat !== 'weekdays' || t.repeat_days.length > 0, { message: 'Pick at least one day', path: ['repeat_days'] })
   .refine((t) => !t.repeat_until || t.repeat_until >= t.start_date, { message: '“Until” must be after the start date', path: ['repeat_until'] })
+
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date')
+const hhmm = z
+  .string()
+  .regex(/^\d{2}:\d{2}(:\d{2})?$/)
+  .nullable()
+
+export const eventSchema = z
+  .object({
+    title: z
+      .string()
+      .transform((v) => cleanText(v, 100))
+      .pipe(z.string().min(1, 'Give the event a name')),
+    type_id: z.string().uuid().nullable(),
+    start_date: isoDate,
+    end_date: isoDate,
+    all_day: z.boolean(),
+    start_time: hhmm,
+    end_time: hhmm,
+    location: z.string().transform((v) => cleanText(v, 300)),
+    notes: z.string().transform((v) => cleanText(v, 2000)),
+    colour: hexColour.nullable(),
+    repeat: z.enum(['once', 'daily', 'weekly', 'fortnightly', 'monthly', 'yearly']),
+    repeat_until: isoDate.nullable(),
+    reminder_minutes: z.number().int().min(0).max(20160).nullable(),
+  })
+  .refine((e) => e.end_date >= e.start_date, { message: 'The end date is before the start', path: ['end_date'] })
+  .refine((e) => e.all_day || !!e.start_time, { message: 'Pick a start time (or make it all day)', path: ['start_time'] })
+  .refine((e) => e.all_day || !e.end_time || e.end_date > e.start_date || e.end_time >= e.start_time!, {
+    message: 'The end time is before the start',
+    path: ['end_time'],
+  })
+  .refine((e) => !e.repeat_until || e.repeat_until >= e.start_date, { message: '“Until” must be after the start', path: ['repeat_until'] })

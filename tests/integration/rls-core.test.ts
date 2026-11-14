@@ -149,6 +149,16 @@ describe('invite codes', () => {
   })
 })
 
+describe('member colours', () => {
+  it('someone joining without picking a colour gets one nobody else has', async () => {
+    const gina = await createUser('Gina')
+    await gina.client.rpc('join_family', { p_code: famA.code })
+    const { data } = await alice.client.from('family_members').select('user_id, colour').eq('family_id', famA.id)
+    const colours = data!.map((m) => m.colour)
+    expect(new Set(colours).size).toBe(colours.length)
+  })
+})
+
 describe('input validation', () => {
   it('rejects an invalid colour', async () => {
     const { error } = await carol.client.rpc('update_member', { p_family: famA.id, p_user: carol.id, p_colour: 'red; drop table' })

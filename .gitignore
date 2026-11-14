@@ -34,3 +34,4 @@ coverage
 supabase/.temp
 supabase/.branches
 screenshots
+src/lib/database.types.tmp

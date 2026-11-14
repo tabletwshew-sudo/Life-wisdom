@@ -1,6 +1,8 @@
 import clsx from 'clsx'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion } from 'motion/react'
+import { DayCross } from '@/components/ui/DayCross'
+import { useSwipeGuard } from '@/hooks/useSwipeGuard'
 import { addDays, formatDate, range, startOfWeek, type ISODate } from '@/lib/dates'
 
 interface Props {
@@ -17,6 +19,7 @@ export function DateStrip({ selected, today, weekStartsOn, onSelect, marker }: P
   const start = startOfWeek(selected, weekStartsOn)
   const days = range(start, addDays(start, 6))
   const go = (n: number) => onSelect(addDays(selected, n))
+  const swipe = useSwipeGuard()
 
   return (
     <div className="mb-4">
@@ -41,7 +44,10 @@ export function DateStrip({ selected, today, weekStartsOn, onSelect, marker }: P
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.25}
+        onDragStart={swipe.onDragStart}
+        onClickCapture={swipe.onClickCapture}
         onDragEnd={(_, info) => {
+          swipe.onDragEndCleanup()
           if (info.offset.x < -50) go(7)
           else if (info.offset.x > 50) go(-7)
         }}
@@ -56,7 +62,7 @@ export function DateStrip({ selected, today, weekStartsOn, onSelect, marker }: P
                 aria-current={isSel ? 'date' : undefined}
                 aria-label={formatDate(d, { weekday: 'long', day: 'numeric', month: 'long' }) + (m ? `, ${m === 'done' ? 'all done' : m === 'missed' ? 'something missed' : 'to do'}` : '')}
                 className={clsx(
-                  'flex w-full flex-col items-center gap-0.5 rounded-2xl py-2 transition',
+                  'relative flex w-full flex-col items-center gap-0.5 overflow-hidden rounded-2xl py-2 transition',
                   isSel ? 'bg-brand-500 text-white shadow-md' : 'bg-card text-ink',
                   d === today && !isSel && 'ring-2 ring-brand-400',
                 )}
@@ -65,16 +71,10 @@ export function DateStrip({ selected, today, weekStartsOn, onSelect, marker }: P
                   {formatDate(d, { weekday: 'short' }).slice(0, 3)}
                 </span>
                 <span className="text-lg font-bold">{formatDate(d, { day: 'numeric' })}</span>
-                <span
-                  className={clsx(
-                    'flex h-4 items-center text-sm leading-4 font-black',
-                    !isSel && m === 'done' && 'text-done',
-                    !isSel && m === 'missed' && 'text-missed',
-                    !isSel && m === 'todo' && 'text-ink-3',
-                  )}
-                  aria-hidden
-                >
-                  {m === 'done' ? '✓' : m === 'missed' ? '✕' : m === 'todo' ? '•' : ''}
+                {/* A missed day is crossed out completely; a fully-done day gets a tick. */}
+                {m === 'missed' && <DayCross colour={isSel ? '#ffffff' : undefined} />}
+                <span className={clsx('flex h-4 items-center text-sm leading-4 font-black', isSel ? 'text-white' : m === 'done' ? 'text-done' : 'text-ink-3')} aria-hidden>
+                  {m === 'done' ? '✓' : m === 'todo' ? '•' : ''}
                 </span>
               </button>
             </li>

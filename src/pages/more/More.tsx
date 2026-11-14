@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Bell, Download, KeyRound, LogOut, Moon, Palette, Shield, SlidersHorizontal, Sun, SunMoon, Tags, Users } from 'lucide-react'
+import { Bell, CalendarDays, Download, KeyRound, LogOut, Moon, Palette, Shield, SlidersHorizontal, Sun, SunMoon, Tags, Users } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Avatar } from '@/components/ui/Avatar'
@@ -43,7 +43,8 @@ export default function More() {
             {isAdmin && (
               <SettingsRow to="/more/family-settings" icon={<SlidersHorizontal className="size-5" />} iconBg="bg-[#009E73]" label="Family settings" />
             )}
-            <SettingsRow to="/more/categories" icon={<Tags className="size-5" />} iconBg="bg-[#E69F00]" label="Colour categories" />
+            <SettingsRow to="/more/categories" icon={<Tags className="size-5" />} iconBg="bg-[#E69F00]" label="Chore categories" />
+            <SettingsRow to="/more/event-types" icon={<CalendarDays className="size-5" />} iconBg="bg-[#E5446D]" label="Event types" />
             {families.length > 1 &&
               families
                 .filter((f) => f.id !== family.id)

@@ -49,6 +49,128 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"event_attendees": {
+                  Row: {
+                    "added_at": string,"added_by": string | null,"event_id": string,"family_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "added_at"?: string,"added_by"?: string | null,"event_id": string,"family_id": string,"user_id": string
+                  }
+                  Update: {
+                    "added_at"?: string,"added_by"?: string | null,"event_id"?: string,"family_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "event_attendees_added_by_fkey"
+      columns: ["added_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_attendees_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_attendees_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_attendees_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"event_exceptions": {
+                  Row: {
+                    "event_id": string,"family_id": string,"skip_date": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "event_id": string,"family_id": string,"skip_date": string
+                  }
+                  Update: {
+                    "event_id"?: string,"family_id"?: string,"skip_date"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "event_exceptions_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_exceptions_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"event_types": {
+                  Row: {
+                    "colour": string,"created_at": string,"created_by": string | null,"emoji": string,"family_id": string,"id": string,"name": string,"sort": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "colour"?: string,"created_at"?: string,"created_by"?: string | null,"emoji"?: string,"family_id": string,"id"?: string,"name": string,"sort"?: number
+                  }
+                  Update: {
+                    "colour"?: string,"created_at"?: string,"created_by"?: string | null,"emoji"?: string,"family_id"?: string,"id"?: string,"name"?: string,"sort"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "event_types_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_types_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"events": {
+                  Row: {
+                    "all_day": boolean,"colour": string | null,"created_at": string,"created_by": string | null,"end_date": string,"end_time": string | null,"family_id": string,"id": string,"location": string,"notes": string,"reminder_minutes": number | null,"repeat": string,"repeat_until": string | null,"start_date": string,"start_time": string | null,"title": string,"type_id": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "all_day"?: boolean,"colour"?: string | null,"created_at"?: string,"created_by"?: string | null,"end_date": string,"end_time"?: string | null,"family_id": string,"id"?: string,"location"?: string,"notes"?: string,"reminder_minutes"?: number | null,"repeat"?: string,"repeat_until"?: string | null,"start_date": string,"start_time"?: string | null,"title": string,"type_id"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "all_day"?: boolean,"colour"?: string | null,"created_at"?: string,"created_by"?: string | null,"end_date"?: string,"end_time"?: string | null,"family_id"?: string,"id"?: string,"location"?: string,"notes"?: string,"reminder_minutes"?: number | null,"repeat"?: string,"repeat_until"?: string | null,"start_date"?: string,"start_time"?: string | null,"title"?: string,"type_id"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "events_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "events_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "events_type_id_fkey"
+      columns: ["type_id"]
+isOneToOne: false
+      referencedRelation: "event_types"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"families": {
                   Row: {
                     "created_at": string,"created_by": string | null,"encryption_enabled": boolean,"id": string,"members_can_add_events": boolean,"members_can_add_recipes": boolean,"members_can_add_shopping": boolean,"members_can_add_tasks": boolean,"name": string,"points_enabled": boolean,"timezone": string,"week_starts_on": number
@@ -280,6 +402,36 @@ isOneToOne: false
             "add_default_categories":
 { Args: { "fid": string }; Returns: undefined
                            },
+"add_default_event_types":
+{ Args: { "fid": string }; Returns: undefined
+                           },
+"apply_event_fields":
+{ Args: { "d": Json,"e": Omit<Database["public"]['Tables']["events"]['Row'], Database["public"]['Tables']["events"]['ComputedFields']> }; Returns: {
+              "all_day": boolean,
+"colour": string | null,
+"created_at": string,
+"created_by": string | null,
+"end_date": string,
+"end_time": string | null,
+"family_id": string,
+"id": string,
+"location": string,
+"notes": string,
+"reminder_minutes": number | null,
+"repeat": string,
+"repeat_until": string | null,
+"start_date": string,
+"start_time": string | null,
+"title": string,
+"type_id": string | null,
+"updated_at": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "events"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "apply_task_fields":
 { Args: { "d": Json,"t": Omit<Database["public"]['Tables']["tasks"]['Row'], Database["public"]['Tables']["tasks"]['ComputedFields']> }; Returns: {
               "archived_at": string | null,
@@ -314,11 +466,17 @@ isOneToOne: false
 "can_complete":
 { Args: { "p_for_user": string,"tid": string }; Returns: boolean
                            },
+"can_manage_event":
+{ Args: { "eid": string }; Returns: boolean
+                           },
 "can_manage_task":
 { Args: { "tid": string }; Returns: boolean
                            },
 "clean_text":
 { Args: { "max_len": number,"t": string }; Returns: string
+                           },
+"create_event":
+{ Args: { "p_attendees"?: (string)[],"p_data": Json,"p_family": string }; Returns: string
                            },
 "create_family":
 { Args: { "p_colour"?: string,"p_name": string,"p_timezone"?: string }; Returns: string
@@ -356,6 +514,9 @@ isOneToOne: false
 "remove_member":
 { Args: { "p_family": string,"p_user": string }; Returns: undefined
                            },
+"set_event_attendees":
+{ Args: { "p_attendees": (string)[],"p_event": string }; Returns: undefined
+                           },
 "set_task_assignees":
 { Args: { "p_assignees": (string)[],"p_task": string }; Returns: undefined
                            },
@@ -364,6 +525,9 @@ isOneToOne: false
                            },
 "task_occurs_on":
 { Args: { "p_date": string,"p_task": Omit<Database["public"]['Tables']["tasks"]['Row'], Database["public"]['Tables']["tasks"]['ComputedFields']> }; Returns: boolean
+                           },
+"update_event":
+{ Args: { "p_attendees"?: (string)[],"p_data": Json,"p_event": string }; Returns: string
                            },
 "update_member":
 { Args: { "p_colour"?: string,"p_family": string,"p_role"?: Database["public"]['Enums']["family_role"],"p_user": string }; Returns: undefined

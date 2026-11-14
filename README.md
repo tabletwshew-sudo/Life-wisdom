@@ -2,8 +2,8 @@
 
 A free family organiser for chores, a shared calendar, meals and shopping. It works in any web browser, and you can install it on an iPhone from Safari with **Add to Home Screen**. You don't need an App Store listing or a paid Apple Developer account.
 
-> **Build status:** Phases 1–2 of 6 are finished: sign-in, families and invites, the installable app, and **chores**
-> (repeating tasks, ticks, crosses, NEW badges, points and streaks). Calendar, Food, Notifications and Encryption arrive in later phases.
+> **Build status:** Phases 1–3 of 6 are finished: sign-in, families and invites, the installable app, **chores**
+> (repeating tasks, ticks, crosses, NEW badges, points and streaks) and the **shared calendar**. Food, Notifications and Encryption arrive in later phases.
 
 ---
 
@@ -40,6 +40,7 @@ You don't need to install anything on your computer to get it running.
    |---|---|---|
    | 1 | `20261114000100_core.sql` | Families, members, invites |
    | 2 | `20261114000200_tasks.sql` | Chores, categories, ticks |
+   | 3 | `20261114000300_events.sql` | Calendar events, event types, attendees |
 
 > Later phases add more files. Each time you update, run only the new file(s), in order. Running a file twice is safe.
 
@@ -117,7 +118,22 @@ Tap **Make a new code** at any time to stop the old link working.
 - **Editing a repeating chore** never changes the past. If you change *when* it happens or *who* does it, history up to yesterday stays as it was.
 - **Deleting a repeating chore** gives you two options: *Stop from today* keeps past ticks and crosses, or *Delete everything*.
 - **Trying it out:** on an empty Tasks page, an admin can tap **Add example chores**.
-- **Categories:** go to **More** → **Colour categories** to add, rename or recolour them.
+- **Categories:** go to **More** → **Chore categories** to add, rename or recolour them.
+- **Crossed-out days:** in the week strip, a day that ended with something missed is crossed out completely with a big ✕.
+
+## Using the calendar
+
+- **Views:** **Day**, **Week**, **Month** and **Year**. Swipe left or right on a phone or tablet, or use the ‹ › arrows. **Today** jumps back.
+- **Tap a day** to see everything on it, with an **Add event** button. In Year view, tap a month name to open it.
+- **Add an event:** tap **+** (on a computer, **New event**). Set a title, type, all day or start and end times, end date for trips, who's going, location, repeat (weekly, fortnightly, monthly, yearly…), reminder, colour and notes.
+  - **Birthday** automatically becomes all-day and yearly. Set the date of birth as the start and the calendar shows the age, e.g. *Sam's birthday (12)*.
+  - Delete **just one** date of a repeating event (e.g. no football this week) or **every time**.
+- **Event types:** Birthday, Party, Dinner, Holiday / trip, Appointment, School, Sport and Other. Add your own in **More** → **Event types**.
+- **Calendar options** (the sliders button):
+  - **Colour by person** (each person's colour, split into stripes when several people go) or by **type / category**.
+  - **Show chores on the calendar:** chores appear with ✅ ticks, ❌ crosses and ✨ NEW. A day that ended with something missed is crossed out.
+- New or newly-invited events show ✨ **NEW** until you've seen them.
+- Kids (Members) can add events only if an admin allows it in **More** → **Family settings**.
 
 ## Step 7: Push notifications on iPhone
 *Arrives in Phase 5.* It needs iOS 16.4 or newer, and the app must be installed to the Home Screen (Step 5).
@@ -188,9 +204,11 @@ src/
   components/ui/        Button, Field, Sheet (bottom sheet), Avatar, pickers…
   components/layout/    AppShell (bottom tabs on phones, side nav on larger screens)
   features/tasks/       Tasks page, task sheets, rows, data hooks
+  features/calendar/    Calendar page, Day/Week/Month/Year views, event sheets
   pages/                one file per screen
   lib/                  Supabase client, validation, colours, dates, generated DB types
   lib/tasks/            recurrence + status rules (pure functions, unit-tested)
+  lib/calendar/         event expansion, multi-day spans, month grids (unit-tested)
   sw.ts                 service worker (offline support, and push later)
 supabase/migrations/    the database schema and RLS policies (run in order)
 tests/integration/      RLS tests against a real Supabase

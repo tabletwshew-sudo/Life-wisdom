@@ -9,7 +9,9 @@ import { EmojiPicker } from '@/components/ui/EmojiPicker'
 import { Field } from '@/components/ui/Field'
 import { Sheet } from '@/components/ui/Sheet'
 import { useToast } from '@/components/ui/Toast'
-import { taskKeys, useCategories, type Category } from '@/features/tasks/api'
+import { eventKeys, useEventTypes } from '@/features/calendar/api'
+import { taskKeys, useCategories } from '@/features/tasks/api'
+import type { Permission } from '@/family/FamilyProvider'
 import { useCurrentFamily } from '@/family/FamilyProvider'
 import { tint } from '@/lib/colours'
 import { friendlyError } from '@/lib/errors'
@@ -18,19 +20,57 @@ import { cleanText } from '@/lib/validation'
 
 const CATEGORY_EMOJI = ['🧹', '🍽️', '🐾', '🎒', '🛏️', '🌳', '🚗', '🛒', '💪', '🎵', '⚽', '🏠', '🧺', '📚', '💊', '🎨', '🧒', '❤️']
 
+interface Item {
+  id: string
+  name: string
+  emoji: string
+  colour: string
+  created_by: string | null
+}
+
+interface Config {
+  table: 'categories' | 'event_types'
+  title: string
+  subtitle: string
+  permission: Permission
+  queryKey: (fid: string) => readonly unknown[]
+  emojis: string[]
+}
+
+const EVENT_EMOJI = ['🎂', '🎉', '🍽️', '✈️', '🩺', '🏫', '⚽', '📌', '💍', '🎭', '🎬', '🏊', '🎹', '🐶', '💇', '🦷', '🚗', '⛪']
+
 export default function Categories() {
+  const items = useCategories().data ?? []
+  return (
+    <ItemManager
+      items={items}
+      config={{ table: 'categories', title: 'Categories', subtitle: 'Colours for chores', permission: 'addTasks', queryKey: taskKeys.categories, emojis: CATEGORY_EMOJI }}
+    />
+  )
+}
+
+export function EventTypesManager() {
+  const items = useEventTypes().data ?? []
+  return (
+    <ItemManager
+      items={items}
+      config={{ table: 'event_types', title: 'Event types', subtitle: 'Birthdays, parties, school… or your own', permission: 'addEvents', queryKey: eventKeys.types, emojis: EVENT_EMOJI }}
+    />
+  )
+}
+
+function ItemManager({ items: categories, config }: { items: Item[]; config: Config }) {
   const { family, me, isAdmin, can } = useCurrentFamily()
-  const categories = useCategories().data ?? []
-  const [editing, setEditing] = useState<Partial<Category> | null>(null)
-  const canEdit = (c: Category) => isAdmin || (c.created_by === me.userId && can('addTasks'))
+  const [editing, setEditing] = useState<Partial<Item> | null>(null)
+  const canEdit = (c: Item) => isAdmin || (c.created_by === me.userId && can(config.permission))
 
   return (
     <>
       <PageHeader
-        title="Categories"
-        subtitle="Colours for tasks (and events)"
+        title={config.title}
+        subtitle={config.subtitle}
         action={
-          can('addTasks') && (
+          can(config.permission) && (
             <Button size="md" icon={<Plus className="size-5" />} onClick={() => setEditing({ name: '', emoji: '🏠', colour: '#0072B2' })}>
               Add
             </Button>
@@ -53,13 +93,13 @@ export default function Categories() {
           </button>
         ))}
       </Card>
-      <CategorySheet familyId={family.id} value={editing} onClose={() => setEditing(null)} />
+      <CategorySheet familyId={family.id} value={editing} config={config} onClose={() => setEditing(null)} />
     </>
   )
 }
 
-function CategorySheet({ familyId, value, onClose }: { familyId: string; value: Partial<Category> | null; onClose: () => void }) {
-  const [draft, setDraft] = useState<Partial<Category>>({})
+function CategorySheet({ familyId, value, config, onClose }: { familyId: string; value: Partial<Item> | null; config: Config; onClose: () => void }) {
+  const [draft, setDraft] = useState<Partial<Item>>({})
   const [lastId, setLastId] = useState<string | undefined | null>(null)
   if (value && (value.id ?? 'new') !== lastId) {
     setDraft(value)
@@ -68,18 +108,18 @@ function CategorySheet({ familyId, value, onClose }: { familyId: string; value: 
   const qc = useQueryClient()
   const toast = useToast()
   const done = () => {
-    qc.invalidateQueries({ queryKey: taskKeys.categories(familyId) })
+    qc.invalidateQueries({ queryKey: config.queryKey(familyId) })
     setLastId(null)
     onClose()
   }
   const save = useMutation({
     mutationFn: async () => {
       const name = cleanText(draft.name ?? '', 30)
-      if (!name) throw new Error('Give the category a name')
+      if (!name) throw new Error('Please give it a name')
       const row = { name, emoji: draft.emoji ?? '🏷️', colour: draft.colour ?? '#0072B2' }
       const { error } = draft.id
-        ? await supabase.from('categories').update(row).eq('id', draft.id)
-        : await supabase.from('categories').insert({ ...row, family_id: familyId, created_by: (await supabase.auth.getUser()).data.user!.id })
+        ? await supabase.from(config.table).update(row).eq('id', draft.id)
+        : await supabase.from(config.table).insert({ ...row, family_id: familyId, created_by: (await supabase.auth.getUser()).data.user!.id })
       if (error) throw error
     },
     onSuccess: () => {
@@ -90,7 +130,7 @@ function CategorySheet({ familyId, value, onClose }: { familyId: string; value: 
   })
   const remove = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('categories').delete().eq('id', draft.id!)
+      const { error } = await supabase.from(config.table).delete().eq('id', draft.id!)
       if (error) throw error
     },
     onSuccess: () => {
@@ -107,7 +147,7 @@ function CategorySheet({ familyId, value, onClose }: { familyId: string; value: 
         setLastId(null)
         onClose()
       }}
-      title={draft.id ? 'Edit category' : 'New category'}
+      title={draft.id ? 'Edit' : 'Add new'}
       footer={
         <div className="flex gap-2">
           {draft.id && (
@@ -115,7 +155,7 @@ function CategorySheet({ familyId, value, onClose }: { familyId: string; value: 
               variant="secondary"
               className="text-red-600!"
               loading={remove.isPending}
-              onClick={() => confirm('Delete this category? Tasks keep working, just without a category.') && remove.mutate()}
+              onClick={() => confirm('Delete this? Items using it keep working, just without it.') && remove.mutate()}
             >
               Delete
             </Button>
@@ -128,7 +168,7 @@ function CategorySheet({ familyId, value, onClose }: { familyId: string; value: 
     >
       <div className="flex flex-col gap-5">
         <Field label="Name" value={draft.name ?? ''} onChange={(e) => setDraft({ ...draft, name: e.target.value })} maxLength={30} />
-        <EmojiPicker value={draft.emoji ?? '🏷️'} onChange={(emoji) => setDraft({ ...draft, emoji })} options={CATEGORY_EMOJI} />
+        <EmojiPicker value={draft.emoji ?? '🏷️'} onChange={(emoji) => setDraft({ ...draft, emoji })} options={config.emojis} />
         <ColourPicker value={draft.colour ?? '#0072B2'} onChange={(colour) => setDraft({ ...draft, colour })} />
       </div>
     </Sheet>

@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronRight, Flame, Star, UtensilsCrossed } from 'lucide-react'
+import { ChevronRight, Flame, Star, UtensilsCrossed } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { InstallCard } from '@/components/InstallCard'
@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, SectionTitle } from '@/components/ui/Card'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { useToast } from '@/components/ui/Toast'
+import { TodayEvents } from '@/features/calendar/TodayEvents'
 import { useCategories, useToggleCompletion } from '@/features/tasks/api'
 import { TaskDetailSheet } from '@/features/tasks/TaskDetailSheet'
 import { TaskRow } from '@/features/tasks/TaskRow'
@@ -141,8 +142,11 @@ export default function Today() {
         )}
       </section>
 
+      <div className="mt-6">
+        <TodayEvents today={today} />
+      </div>
+
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <PlaceholderCard to="/calendar" icon={<CalendarDays className="size-6" />} title="Today’s events" text="The calendar arrives in Phase 3." />
         <PlaceholderCard to="/food" icon={<UtensilsCrossed className="size-6" />} title="What’s for dinner?" text="Meal planning arrives in Phase 4." />
       </div>
 

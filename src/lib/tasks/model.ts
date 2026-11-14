@@ -132,10 +132,26 @@ export const NEW_WINDOW_DAYS = 7
  * and they haven't viewed it since.
  */
 export function isNewFor(task: Task, userId: string, seenAt: string | undefined, now: Date = new Date()): boolean {
-  const triggers: string[] = []
-  if (task.createdBy && task.createdBy !== userId) triggers.push(task.createdAt)
   const mine = task.assignees.find((a) => a.userId === userId)
-  if (mine && mine.assignedBy !== userId) triggers.push(mine.assignedAt)
+  return isNewItem(task.createdBy, task.createdAt, mine ? { by: mine.assignedBy, at: mine.assignedAt } : null, userId, seenAt, now)
+}
+
+/**
+ * Shared NEW rule for tasks, events and recipes: in the last 7 days someone
+ * else created it, or someone else assigned/invited this person, and they
+ * haven't viewed it since.
+ */
+export function isNewItem(
+  createdBy: string | null,
+  createdAt: string,
+  assignment: { by: string | null; at: string } | null,
+  userId: string,
+  seenAt: string | undefined,
+  now: Date = new Date(),
+): boolean {
+  const triggers: string[] = []
+  if (createdBy && createdBy !== userId) triggers.push(createdAt)
+  if (assignment && assignment.by !== userId) triggers.push(assignment.at)
   if (!triggers.length) return false
   const latest = triggers.sort().at(-1)!
   if (now.getTime() - new Date(latest).getTime() > NEW_WINDOW_DAYS * 86_400_000) return false

@@ -33,6 +33,8 @@ export default function Welcome() {
   const [displayName, setDisplayName] = useState('')
   const [emoji, setEmoji] = useState('😀')
   const [colour, setColour] = useState<string>(PALETTE[0].hex)
+  // If someone joining doesn't pick a colour, the server gives them one nobody else has.
+  const [colourPicked, setColourPicked] = useState(false)
   const [familyName, setFamilyName] = useState('')
   const [code, setCode] = useState(pending ?? '')
   const [error, setError] = useState<string | null>(null)
@@ -90,7 +92,7 @@ export default function Welcome() {
       } else {
         const parsed = inviteCodeSchema.safeParse(code)
         if (!parsed.success) throw new Error(parsed.error.issues[0].message)
-        const { data, error: err } = await supabase.rpc('join_family', { p_code: parsed.data, p_colour: colour })
+        const { data, error: err } = await supabase.rpc('join_family', { p_code: parsed.data, p_colour: colourPicked ? colour : undefined })
         if (err) throw err
         if (!data) throw new Error('We couldn’t find a family with that code. Check it with whoever invited you.')
         familyId = data
@@ -115,7 +117,14 @@ export default function Welcome() {
           </div>
           <Field label="Your name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={40} autoComplete="given-name" />
           <EmojiPicker value={emoji} onChange={setEmoji} label="Pick your emoji" />
-          <ColourPicker value={colour} onChange={setColour} label="Pick your colour" />
+          <ColourPicker
+            value={colour}
+            onChange={(c) => {
+              setColour(c)
+              setColourPicked(true)
+            }}
+            label="Pick your colour"
+          />
           <FormError message={error} />
           <Button type="submit" loading={busy} full>
             Next
