@@ -86,9 +86,9 @@ export default function CalendarPage() {
       { replace: true },
     )
 
-  const { colourMode, setColourMode, showTasks, setShowTasks } = useCalendarPrefs()
+  const { colourMode, setColourMode, showTasks, setShowTasks, showMeals, setShowMeals } = useCalendarPrefs()
   const [from, to] = rangeFor(view, date, family.week_starts_on)
-  const data = useCalendarData(from, to, today, showTasks && view !== 'year', colourMode)
+  const data = useCalendarData(from, to, today, showTasks && view !== 'year', colourMode, showMeals && view !== 'year')
 
   const [daySheet, setDaySheet] = useState<ISODate | null>(null)
   const [eventDetail, setEventDetail] = useState<EventOccurrence | null>(null)
@@ -251,6 +251,7 @@ export default function CalendarPage() {
         </div>
         <div className="-mx-4 rounded-2xl">
           <Toggle label="Show chores on the calendar" description="Ticks, crosses and NEW badges for tasks" checked={showTasks} onChange={setShowTasks} />
+          <Toggle label="Show meals on the calendar" description="From the meal planner" checked={showMeals} onChange={setShowMeals} />
         </div>
       </Sheet>
 

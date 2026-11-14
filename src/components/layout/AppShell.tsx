@@ -3,6 +3,7 @@ import { WifiOff } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
 import { useEventRealtime } from '@/features/calendar/api'
+import { useFoodRealtime } from '@/features/food/api'
 import { useTaskRealtime } from '@/features/tasks/api'
 import { useFamily } from '@/family/FamilyProvider'
 import { useOnline } from '@/hooks/useOnline'
@@ -13,6 +14,7 @@ export function AppShell() {
   const { family, me } = useFamily()
   useTaskRealtime()
   useEventRealtime()
+  useFoodRealtime()
 
   return (
     <div className="min-h-dvh md:flex">

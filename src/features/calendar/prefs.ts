@@ -15,6 +15,7 @@ function read<T>(key: string, fallback: T): T {
 export function useCalendarPrefs() {
   const [colourMode, setColourModeState] = useState<ColourMode>(() => read('fh-cal-colour', 'person'))
   const [showTasks, setShowTasksState] = useState<boolean>(() => read('fh-cal-tasks', true))
+  const [showMeals, setShowMealsState] = useState<boolean>(() => read('fh-cal-meals', true))
   const save = (k: string, v: unknown) => {
     try {
       localStorage.setItem(k, JSON.stringify(v))
@@ -24,5 +25,6 @@ export function useCalendarPrefs() {
   }
   const setColourMode = useCallback((m: ColourMode) => (setColourModeState(m), save('fh-cal-colour', m)), [])
   const setShowTasks = useCallback((v: boolean) => (setShowTasksState(v), save('fh-cal-tasks', v)), [])
-  return { colourMode, setColourMode, showTasks, setShowTasks }
+  const setShowMeals = useCallback((v: boolean) => (setShowMealsState(v), save('fh-cal-meals', v)), [])
+  return { colourMode, setColourMode, showTasks, setShowTasks, showMeals, setShowMeals }
 }

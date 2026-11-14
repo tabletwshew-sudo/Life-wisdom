@@ -130,3 +130,30 @@ export const eventSchema = z
     path: ['end_time'],
   })
   .refine((e) => !e.repeat_until || e.repeat_until >= e.start_date, { message: '“Until” must be after the start', path: ['repeat_until'] })
+
+export const recipeSchema = z.object({
+  title: z
+    .string()
+    .transform((v) => cleanText(v, 100))
+    .pipe(z.string().min(1, 'Give it a name')),
+  kind: z.enum(['food', 'drink']),
+  is_idea: z.boolean(),
+  emoji: z
+    .string()
+    .transform((v) => cleanText(v, 16))
+    .pipe(z.string().min(1)),
+  description: z.string().transform((v) => cleanText(v, 500)),
+  photo_path: z.string().max(200).nullable(),
+  ingredients: z.array(z.string().transform((v) => cleanText(v, 200))).transform((a) => a.filter(Boolean).slice(0, 100)),
+  steps: z.array(z.string().transform((v) => cleanText(v, 2000))).transform((a) => a.filter(Boolean).slice(0, 60)),
+  prep_minutes: z.number().int().min(0).max(1440).nullable(),
+  cook_minutes: z.number().int().min(0).max(1440).nullable(),
+  servings: z.number().int().min(1).max(100).nullable(),
+  tags: z.array(z.string().max(30)).max(20),
+  notes: z.string().transform((v) => cleanText(v, 2000)),
+  source_url: z
+    .string()
+    .trim()
+    .transform((v) => (v ? v : null))
+    .pipe(z.string().url('That link doesn’t look right').regex(/^https?:\/\//i, 'Links must start with http:// or https://').nullable()),
+})

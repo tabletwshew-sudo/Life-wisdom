@@ -6,17 +6,41 @@ import { useCurrentFamily } from '@/family/FamilyProvider'
 import { eventsOnDay, expandEvents, isEventNewFor, type CalEvent, type EventOccurrence } from '@/lib/calendar/events'
 import type { ISODate } from '@/lib/dates'
 import type { Occurrence } from '@/lib/tasks/model'
+import { SLOTS, useMealPlans, useRecipes, type Slot } from '@/features/food/api'
 import { useEventTypes, useEvents } from './api'
 import type { ColourMode } from './prefs'
 
 const FALLBACK = '#0072B2'
 
-export function useCalendarData(from: ISODate, to: ISODate, today: ISODate, showTasks: boolean, colourMode: ColourMode) {
+export interface CalendarMeal {
+  key: string
+  date: ISODate
+  slot: Slot
+  title: string
+  emoji: string
+  recipeId: string | null
+}
+
+export function useCalendarData(from: ISODate, to: ISODate, today: ISODate, showTasks: boolean, colourMode: ColourMode, showMeals = true) {
   const { memberById } = useCurrentFamily()
   const eventsQ = useEvents()
   const types = useEventTypes().data ?? []
   const categories = useCategories().data ?? []
   const { occurrences: taskOccs, tasks } = useOccurrences(from, to, today)
+  const mealRows = useMealPlans().data
+  const recipeRows = useRecipes().data
+  const meals = useMemo<CalendarMeal[]>(() => {
+    if (!showMeals) return []
+    const byId = new Map((recipeRows ?? []).map((r) => [r.id, r]))
+    const order = { breakfast: 0, lunch: 1, dinner: 2 }
+    return (mealRows ?? [])
+      .filter((m) => m.plan_date >= from && m.plan_date <= to)
+      .map((m) => {
+        const r = m.recipe_id ? byId.get(m.recipe_id) : undefined
+        return { key: m.id, date: m.plan_date, slot: m.slot as Slot, title: r?.title ?? m.custom_title ?? '', emoji: r?.emoji ?? SLOTS.find((s) => s.slot === m.slot)!.emoji, recipeId: r?.id ?? null }
+      })
+      .sort((a, b) => order[a.slot] - order[b.slot])
+  }, [showMeals, mealRows, recipeRows, from, to])
 
   const eventOccs = useMemo(() => expandEvents(eventsQ.data ?? [], from, to), [eventsQ.data, from, to])
   const tasksShown = useMemo(() => (showTasks ? taskOccs : []), [showTasks, taskOccs])
@@ -53,6 +77,7 @@ export function useCalendarData(from: ISODate, to: ISODate, today: ISODate, show
   )
 
   const eventsOn = useCallback((day: ISODate): EventOccurrence[] => eventsOnDay(eventOccs, day), [eventOccs])
+  const mealsOn = useCallback((day: ISODate) => meals.filter((m) => m.date === day), [meals])
   const tasksOn = useCallback((day: ISODate): Occurrence[] => tasksShown.filter((o) => o.date === day), [tasksShown])
 
   /** 'missed' → the whole day gets crossed out. */
@@ -72,6 +97,7 @@ export function useCalendarData(from: ISODate, to: ISODate, today: ISODate, show
     eventOccs,
     eventsOn,
     tasksOn,
+    mealsOn,
     dayStatus,
     eventColours,
     taskColour,

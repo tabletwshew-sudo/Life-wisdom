@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useAuth } from '@/auth/AuthProvider'
 import type { Database } from '@/lib/database.types'
+import { onFamilyChanges } from '@/lib/realtime'
 import { supabase } from '@/lib/supabase'
 
 export type Family = Database['public']['Tables']['families']['Row']
@@ -90,13 +91,17 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
   // Live updates: when anyone in the family changes something, refetch.
   useEffect(() => {
     if (!family || !user) return
-    const channel = supabase
-      .channel(`family-core:${family.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'family_members', filter: `family_id=eq.${family.id}` }, () => {
-        qc.invalidateQueries({ queryKey: ['members', family.id] })
+    const channel = supabase.channel(`family-core:${family.id}`)
+    onFamilyChanges(channel, 'family_members', `family_id=eq.${family.id}`, () => {
+      qc.invalidateQueries({ queryKey: ['members', family.id] })
+      qc.invalidateQueries({ queryKey: ['families', user.id] })
+    })
+    channel
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'families', filter: `id=eq.${family.id}` }, () => {
         qc.invalidateQueries({ queryKey: ['families', user.id] })
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'families', filter: `id=eq.${family.id}` }, () => {
+      // Deletes can't be filtered; refetch (RLS decides what we still see).
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'families' }, () => {
         qc.invalidateQueries({ queryKey: ['families', user.id] })
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, () => {

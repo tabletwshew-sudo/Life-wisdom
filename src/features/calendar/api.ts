@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useFamily } from '@/family/FamilyProvider'
 import type { CalEvent, EventRepeat } from '@/lib/calendar/events'
 import type { Database } from '@/lib/database.types'
+import { onFamilyChanges } from '@/lib/realtime'
 import { supabase } from '@/lib/supabase'
 
 type EventRow = Database['public']['Tables']['events']['Row'] & {
@@ -82,11 +83,8 @@ export function useEventRealtime() {
     const filter = `family_id=eq.${fid}`
     const refresh = () => qc.invalidateQueries({ queryKey: eventKeys.events(fid) })
     const ch = supabase.channel(`family-events:${fid}`)
-    for (const table of ['events', 'event_attendees', 'event_exceptions'] as const)
-      ch.on('postgres_changes', { event: '*', schema: 'public', table, filter }, refresh)
-    ch.on('postgres_changes', { event: '*', schema: 'public', table: 'event_types', filter }, () =>
-      qc.invalidateQueries({ queryKey: eventKeys.types(fid) }),
-    )
+    for (const table of ['events', 'event_attendees', 'event_exceptions'] as const) onFamilyChanges(ch, table, filter, refresh)
+    onFamilyChanges(ch, 'event_types', filter, () => qc.invalidateQueries({ queryKey: eventKeys.types(fid) }))
     ch.subscribe((status) => status === 'SUBSCRIBED' && refresh())
     return () => {
       supabase.removeChannel(ch)

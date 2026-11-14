@@ -9,10 +9,11 @@ import ForgotPassword from '@/pages/auth/ForgotPassword'
 import ResetPassword from '@/pages/auth/ResetPassword'
 import SignIn from '@/pages/auth/SignIn'
 import SignUp from '@/pages/auth/SignUp'
-import ComingSoon from '@/pages/ComingSoon'
 import Today from '@/pages/Today'
 import Welcome from '@/pages/Welcome'
 
+const FoodPage = lazy(() => import('@/features/food/FoodPage'))
+const RecipePage = lazy(() => import('@/features/food/RecipePage'))
 const CalendarPage = lazy(() => import('@/features/calendar/CalendarPage'))
 const EventTypes = lazy(() => import('@/pages/more/EventTypes'))
 const TasksPage = lazy(() => import('@/features/tasks/TasksPage'))
@@ -106,7 +107,22 @@ export default function App() {
                   </Suspense>
                 }
               />
-              <Route path="food" element={<ComingSoon title="Food & Drink" emoji="🍝" phase={4} />} />
+              <Route
+                path="food"
+                element={
+                  <Suspense fallback={<Spinner />}>
+                    <FoodPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="food/recipe/:id"
+                element={
+                  <Suspense fallback={<Spinner />}>
+                    <RecipePage />
+                  </Suspense>
+                }
+              />
               <Route
                 path="more/*"
                 element={

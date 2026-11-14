@@ -2,8 +2,9 @@
 
 A free family organiser for chores, a shared calendar, meals and shopping. It works in any web browser, and you can install it on an iPhone from Safari with **Add to Home Screen**. You don't need an App Store listing or a paid Apple Developer account.
 
-> **Build status:** Phases 1–3 of 6 are finished: sign-in, families and invites, the installable app, **chores**
-> (repeating tasks, ticks, crosses, NEW badges, points and streaks) and the **shared calendar**. Food, Notifications and Encryption arrive in later phases.
+> **Build status:** Phases 1–4 of 6 are finished: sign-in, families and invites, the installable app, **chores**
+> (repeating tasks, ticks, crosses, NEW badges, points and streaks), the **shared calendar**, and **food & drink** (recipes, meal planner,
+> shopping list, ideas). Notifications and Encryption arrive in phases 5–6.
 
 ---
 
@@ -41,6 +42,7 @@ You don't need to install anything on your computer to get it running.
    | 1 | `20261114000100_core.sql` | Families, members, invites |
    | 2 | `20261114000200_tasks.sql` | Chores, categories, ticks |
    | 3 | `20261114000300_events.sql` | Calendar events, event types, attendees |
+   | 4 | `20261114000400_food.sql` | Recipes, meal plans, shopping list, private photo storage |
 
 > Later phases add more files. Each time you update, run only the new file(s), in order. Running a file twice is safe.
 
@@ -135,6 +137,32 @@ Tap **Make a new code** at any time to stop the old link working.
 - New or newly-invited events show ✨ **NEW** until you've seen them.
 - Kids (Members) can add events only if an admin allows it in **More** → **Family settings**.
 
+## Using Food & Drink
+
+The Food tab has five sections:
+
+- **🗓️ Plan:** the weekly meal planner.
+  - Tap a breakfast, lunch or dinner slot to choose a recipe, type something like "Takeaway", or tap **Surprise me**, which picks a recipe you haven't had for two weeks.
+  - **Add this week's ingredients to shopping** puts everything you need from today onwards on the list. The same ingredient is added up across recipes (e.g. 400 g + 200 g spaghetti = 600 g).
+  - Planned meals also show on the **Today** page ("What's for dinner?") and on the **calendar**. You can switch them off in Calendar options.
+- **📖 Recipes** and **🥤 Drinks:** your family's recipe book.
+  - **Each recipe has:** a photo, emoji, tags (dinner, dessert, kid-friendly, vegetarian, smoothie, mocktail, cocktail…), prep and cook time, servings, ingredients (one per line), steps and notes.
+  - **Finding recipes:** search, filter by tag, or show **My favourites**.
+  - **Favourites:** everyone stars their own, and the star shows how many people love it.
+  - **New recipes** show a ✨ NEW badge until you've seen them.
+  - **On a recipe's page:** tick ingredients off as you cook, send them to the **Shopping list**, or **Plan it** for a day.
+  - **Trying it out:** an admin can tap **Add example recipes** on an empty recipe book.
+- **🛒 Shopping:** one shared list, live for everyone, so two people in different aisles don't buy the same thing.
+  - **Adding items:** type things like "2 milk". Items are sorted into supermarket aisles automatically.
+  - **In the shop:** tap the circle to tick an item; it moves to "In the trolley" with the person who got it. **Clear ticked** tidies up afterwards.
+- **💡 Ideas:** save links and recipes to try.
+  - **Suggest something** gives you one of your own recipes you haven't had for a while, plus something new from a built-in list. Filter by dinner, breakfast, lunch, dessert, veggie, kid-friendly or drink. It's free, with no AI service involved.
+  - **Saving a suggestion:** save it as an idea, or **Make it a recipe**. Once you've tried an idea, edit it and switch on **Move to the recipe book**.
+
+**Photos** are shrunk on your phone before upload (about 250 KB each), so the free 1 GB of storage holds thousands. They're kept in a **private** storage area: only your family can see them, through links that expire after an hour.
+
+**Who can do what:** by default kids (Members) can add recipes, plan meals and add shopping items. Admins can switch these off in **More** → **Family settings**. Anyone in the family can tick shopping items.
+
 ## Step 7: Push notifications on iPhone
 *Arrives in Phase 5.* It needs iOS 16.4 or newer, and the app must be installed to the Home Screen (Step 5).
 
@@ -205,10 +233,12 @@ src/
   components/layout/    AppShell (bottom tabs on phones, side nav on larger screens)
   features/tasks/       Tasks page, task sheets, rows, data hooks
   features/calendar/    Calendar page, Day/Week/Month/Year views, event sheets
+  features/food/        Food page (plan, recipes, drinks, shopping, ideas), recipe page
   pages/                one file per screen
   lib/                  Supabase client, validation, colours, dates, generated DB types
   lib/tasks/            recurrence + status rules (pure functions, unit-tested)
   lib/calendar/         event expansion, multi-day spans, month grids (unit-tested)
+  lib/food/             ingredient parsing/merging, aisles, built-in suggestions (unit-tested)
   sw.ts                 service worker (offline support, and push later)
 supabase/migrations/    the database schema and RLS policies (run in order)
 tests/integration/      RLS tests against a real Supabase

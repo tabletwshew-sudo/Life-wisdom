@@ -1,4 +1,4 @@
-import { ChevronRight, Flame, Star, UtensilsCrossed } from 'lucide-react'
+import { ChevronRight, Flame, Star } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { InstallCard } from '@/components/InstallCard'
@@ -7,6 +7,7 @@ import { Card, SectionTitle } from '@/components/ui/Card'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { useToast } from '@/components/ui/Toast'
 import { TodayEvents } from '@/features/calendar/TodayEvents'
+import { DinnerCard } from '@/features/food/DinnerCard'
 import { useCategories, useToggleCompletion } from '@/features/tasks/api'
 import { TaskDetailSheet } from '@/features/tasks/TaskDetailSheet'
 import { TaskRow } from '@/features/tasks/TaskRow'
@@ -146,28 +147,12 @@ export default function Today() {
         <TodayEvents today={today} />
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <PlaceholderCard to="/food" icon={<UtensilsCrossed className="size-6" />} title="What’s for dinner?" text="Meal planning arrives in Phase 4." />
+      <div className="mt-6">
+        <DinnerCard today={today} />
       </div>
 
       <TaskDetailSheet occ={detail} today={today} onClose={() => setDetail(null)} onEdit={(t) => (setDetail(null), setEditing(t))} />
       <TaskSheet open={!!editing} task={editing} defaultDate={today} onClose={() => setEditing(null)} />
     </>
-  )
-}
-
-function PlaceholderCard({ to, icon, title, text }: { to: string; icon: React.ReactNode; title: string; text: string }) {
-  return (
-    <Link to={to}>
-      <Card className="flex h-full items-start gap-3 p-4 transition hover:-translate-y-0.5">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-100 text-brand-600 dark:bg-brand-700/40 dark:text-brand-200" aria-hidden>
-          {icon}
-        </span>
-        <div>
-          <p className="font-bold">{title}</p>
-          <p className="text-sm text-ink-3">{text}</p>
-        </div>
-      </Card>
-    </Link>
   )
 }

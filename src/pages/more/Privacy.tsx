@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useToast } from '@/components/ui/Toast'
 import { useCurrentFamily } from '@/family/FamilyProvider'
-import { exportFamilyData } from '@/lib/exportData'
+import { deleteFamilyPhotos, exportFamilyData } from '@/lib/exportData'
 import { friendlyError } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
 
@@ -38,6 +38,7 @@ export default function Privacy() {
     const typed = prompt(`This permanently deletes ${family.name} and everything in it for everyone.\n\nType DELETE to confirm.`)
     if (typed?.trim() !== 'DELETE') return
     setBusy('delete')
+    await deleteFamilyPhotos(family.id)
     const { error } = await supabase.from('families').delete().eq('id', family.id)
     setBusy(null)
     if (error) return toast(friendlyError(error), 'error')
@@ -51,8 +52,8 @@ export default function Privacy() {
       <PageHeader title="Privacy & your data" />
       <div className="flex flex-col gap-4">
         <Info icon={<Server className="size-6" />} title="What we store">
-          Your name, emoji, colour and email; your family’s name and settings; and the chores, events, recipes, meal plans and shopping items your
-          family adds. Passwords are never stored in readable form (Supabase stores a one-way bcrypt hash).
+          Your name, emoji, colour and email; your family’s name and settings; and the chores, events, recipes (and recipe photos), meal plans and
+          shopping items your family adds. Passwords are never stored in readable form (Supabase stores a one-way bcrypt hash).
         </Info>
         <Info icon={<ShieldCheck className="size-6" />} title="Who can see it">
           Only signed-in members of your family. Every database table uses Row Level Security, so the server itself refuses to hand one family’s data

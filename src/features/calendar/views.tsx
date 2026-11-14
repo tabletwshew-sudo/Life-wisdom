@@ -9,7 +9,9 @@ import { monthGrid, type EventOccurrence } from '@/lib/calendar/events'
 import { tint } from '@/lib/colours'
 import { addDays, formatDate, parts, range, startOfWeek, type ISODate } from '@/lib/dates'
 import { progress, type Occurrence } from '@/lib/tasks/model'
-import type { CalendarData } from './useCalendarData'
+import { Link } from 'react-router-dom'
+import { SLOTS } from '@/features/food/api'
+import type { CalendarData, CalendarMeal } from './useCalendarData'
 import { EventChip, EventRow } from './EventItems'
 
 export interface ViewHandlers {
@@ -20,6 +22,36 @@ export interface ViewHandlers {
   onOpenTask: (o: Occurrence) => void
   onToggleTask: (o: Occurrence) => void
   onAddEvent?: (d: ISODate) => void
+}
+
+/** A planned meal; links to the recipe when there is one. */
+function MealLink({ meal, compact }: { meal: CalendarMeal; compact?: boolean }) {
+  const label = SLOTS.find((s) => s.slot === meal.slot)!.label
+  const body = compact ? (
+    <span className="flex items-center gap-1 truncate rounded-md bg-card-2 px-1.5 py-0.5 text-xs">
+      <span aria-hidden>{meal.emoji}</span>
+      <span className="truncate">
+        <span className="text-ink-3">{label}:</span> {meal.title}
+      </span>
+    </span>
+  ) : (
+    <span className="flex min-h-14 items-center gap-3 rounded-2xl bg-card px-4 py-2 shadow-[var(--shadow-card)]">
+      <span className="text-3xl" aria-hidden>
+        {meal.emoji}
+      </span>
+      <span>
+        <span className="block text-xs font-bold tracking-wide text-ink-3 uppercase">{label}</span>
+        <span className="font-semibold">{meal.title}</span>
+      </span>
+    </span>
+  )
+  return meal.recipeId ? (
+    <Link to={`/food/recipe/${meal.recipeId}`} onClick={(e) => e.stopPropagation()} className="block">
+      {body}
+    </Link>
+  ) : (
+    body
+  )
 }
 
 const dayLabel = (d: ISODate) => formatDate(d, { weekday: 'long', day: 'numeric', month: 'long' })
@@ -44,7 +76,8 @@ export function DayAgenda({ day, h, compact }: { day: ISODate; h: ViewHandlers; 
   const { data, today } = h
   const events = data.eventsOn(day)
   const tasks = data.tasksOn(day)
-  if (!events.length && !tasks.length)
+  const meals = data.mealsOn(day)
+  if (!events.length && !tasks.length && !meals.length)
     return (
       <EmptyState emoji="🌤️" title="Nothing planned">
         {h.onAddEvent && (
@@ -70,6 +103,18 @@ export function DayAgenda({ day, h, compact }: { day: ISODate; h: ViewHandlers; 
                 isNew={data.isEventNew(o.event)}
                 onOpen={() => h.onOpenEvent(o)}
               />
+            ))}
+          </ul>
+        </section>
+      )}
+      {meals.length > 0 && (
+        <section>
+          <h3 className="mb-2 px-1 text-sm font-bold tracking-wide text-ink-3 uppercase">Meals</h3>
+          <ul className="flex flex-col gap-2">
+            {meals.map((m) => (
+              <li key={m.key}>
+                <MealLink meal={m} />
+              </li>
             ))}
           </ul>
         </section>
@@ -134,6 +179,7 @@ function MonthCell({ day, inMonth, h }: { day: ISODate; inMonth: boolean; h: Vie
   const status = data.dayStatus(day)
   const isToday = day === today
   const extra = events.length - 3
+  const dinner = data.mealsOn(day).find((m) => m.slot === 'dinner')
   return (
     <div
       role="gridcell"
@@ -167,6 +213,13 @@ function MonthCell({ day, inMonth, h }: { day: ISODate; inMonth: boolean; h: Vie
           ))}
         </div>
         {extra > 0 && <span className="px-1 text-[11px] font-semibold text-ink-3">+{extra} more</span>}
+        {dinner && (
+          <span className="truncate px-1 text-[11px] text-ink-2" title={`Dinner: ${dinner.title}`}>
+            <span aria-hidden>{dinner.emoji}</span>
+            <span className="sr-only sm:not-sr-only"> {dinner.title}</span>
+            <span className="sr-only">Dinner: {dinner.title}</span>
+          </span>
+        )}
         <TaskSummary list={tasks} />
       </div>
     </div>
@@ -205,6 +258,9 @@ export function WeekView({ date, h }: { date: ISODate; h: ViewHandlers }) {
                   isNew={data.isEventNew(o.event)}
                   onClick={() => h.onOpenEvent(o)}
                 />
+              ))}
+              {data.mealsOn(d).map((m) => (
+                <MealLink key={m.key} meal={m} compact />
               ))}
               <div className="relative mt-1 flex flex-col gap-1">
                 {data.tasksOn(d).map((o) => (
@@ -260,6 +316,9 @@ export function WeekView({ date, h }: { date: ISODate; h: ViewHandlers }) {
                       isNew={data.isEventNew(o.event)}
                       onClick={() => h.onOpenEvent(o)}
                     />
+                  ))}
+                  {data.mealsOn(d).map((m) => (
+                    <MealLink key={m.key} meal={m} compact />
                   ))}
                   {tasks.length > 0 && (
                     <button onClick={() => h.onOpenDay(d)} className="self-start py-1">

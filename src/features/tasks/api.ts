@@ -4,6 +4,7 @@ import { useAuth } from '@/auth/AuthProvider'
 import { useFamily } from '@/family/FamilyProvider'
 import { addDays, type ISODate } from '@/lib/dates'
 import type { Database } from '@/lib/database.types'
+import { onFamilyChanges } from '@/lib/realtime'
 import { supabase } from '@/lib/supabase'
 import type { Completion, Task } from '@/lib/tasks/model'
 import type { Repeat } from '@/lib/tasks/recurrence'
@@ -159,11 +160,9 @@ export function useTaskRealtime() {
     const filter = `family_id=eq.${fid}`
     const invalidate = (key: readonly unknown[]) => () => qc.invalidateQueries({ queryKey: key })
     const ch = supabase.channel(`family-tasks:${fid}`)
-    for (const table of ['tasks', 'task_assignees'] as const) {
-      ch.on('postgres_changes', { event: '*', schema: 'public', table, filter }, invalidate(taskKeys.tasks(fid)))
-    }
-    ch.on('postgres_changes', { event: '*', schema: 'public', table: 'task_completions', filter }, invalidate(taskKeys.completions(fid)))
-    ch.on('postgres_changes', { event: '*', schema: 'public', table: 'categories', filter }, invalidate(taskKeys.categories(fid)))
+    for (const table of ['tasks', 'task_assignees'] as const) onFamilyChanges(ch, table, filter, invalidate(taskKeys.tasks(fid)))
+    onFamilyChanges(ch, 'task_completions', filter, invalidate(taskKeys.completions(fid)))
+    onFamilyChanges(ch, 'categories', filter, invalidate(taskKeys.categories(fid)))
     // (Re)connected: catch up on anything we missed while offline or asleep.
     ch.subscribe((status) => {
       if (status === 'SUBSCRIBED') {

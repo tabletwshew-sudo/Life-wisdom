@@ -245,6 +245,38 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"meal_plans": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"custom_title": string | null,"family_id": string,"id": string,"plan_date": string,"recipe_id": string | null,"slot": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"custom_title"?: string | null,"family_id": string,"id"?: string,"plan_date": string,"recipe_id"?: string | null,"slot": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"custom_title"?: string | null,"family_id"?: string,"id"?: string,"plan_date"?: string,"recipe_id"?: string | null,"slot"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "meal_plans_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "meal_plans_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "meal_plans_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "created_at": string,"display_name": string,"emoji": string,"id": string,"updated_at": string
@@ -258,6 +290,64 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"recipe_favourites": {
+                  Row: {
+                    "created_at": string,"family_id": string,"recipe_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"family_id": string,"recipe_id": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"family_id"?: string,"recipe_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "recipe_favourites_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "recipe_favourites_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "recipe_favourites_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"recipes": {
+                  Row: {
+                    "cook_minutes": number | null,"created_at": string,"created_by": string | null,"description": string,"emoji": string,"family_id": string,"id": string,"ingredients": (string)[],"is_idea": boolean,"kind": string,"notes": string,"photo_path": string | null,"prep_minutes": number | null,"servings": number | null,"source_url": string | null,"steps": (string)[],"tags": (string)[],"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cook_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"description"?: string,"emoji"?: string,"family_id": string,"id"?: string,"ingredients"?: (string)[],"is_idea"?: boolean,"kind"?: string,"notes"?: string,"photo_path"?: string | null,"prep_minutes"?: number | null,"servings"?: number | null,"source_url"?: string | null,"steps"?: (string)[],"tags"?: (string)[],"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "cook_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"description"?: string,"emoji"?: string,"family_id"?: string,"id"?: string,"ingredients"?: (string)[],"is_idea"?: boolean,"kind"?: string,"notes"?: string,"photo_path"?: string | null,"prep_minutes"?: number | null,"servings"?: number | null,"source_url"?: string | null,"steps"?: (string)[],"tags"?: (string)[],"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "recipes_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "recipes_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"seen_items": {
                   Row: {
@@ -282,6 +372,38 @@ isOneToOne: false
       columns: ["user_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"shopping_items": {
+                  Row: {
+                    "added_by": string | null,"aisle": string,"checked": boolean,"checked_at": string | null,"checked_by": string | null,"created_at": string,"family_id": string,"for_recipes": (string)[],"id": string,"name": string,"quantity": string,"source": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "added_by"?: string | null,"aisle"?: string,"checked"?: boolean,"checked_at"?: string | null,"checked_by"?: string | null,"created_at"?: string,"family_id": string,"for_recipes"?: (string)[],"id"?: string,"name": string,"quantity"?: string,"source"?: string
+                  }
+                  Update: {
+                    "added_by"?: string | null,"aisle"?: string,"checked"?: boolean,"checked_at"?: string | null,"checked_by"?: string | null,"created_at"?: string,"family_id"?: string,"for_recipes"?: (string)[],"id"?: string,"name"?: string,"quantity"?: string,"source"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shopping_items_added_by_fkey"
+      columns: ["added_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shopping_items_checked_by_fkey"
+      columns: ["checked_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shopping_items_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
       referencedColumns: ["id"]
     }
                   ]
@@ -469,11 +591,17 @@ isOneToOne: false
 "can_manage_event":
 { Args: { "eid": string }; Returns: boolean
                            },
+"can_manage_recipe":
+{ Args: { "rid": string }; Returns: boolean
+                           },
 "can_manage_task":
 { Args: { "tid": string }; Returns: boolean
                            },
 "clean_text":
 { Args: { "max_len": number,"t": string }; Returns: string
+                           },
+"clean_text_array":
+{ Args: { "a": (string)[],"max_items": number,"max_len": number }; Returns: (string)[]
                            },
 "create_event":
 { Args: { "p_attendees"?: (string)[],"p_data": Json,"p_family": string }; Returns: string
@@ -525,6 +653,9 @@ isOneToOne: false
                            },
 "task_occurs_on":
 { Args: { "p_date": string,"p_task": Omit<Database["public"]['Tables']["tasks"]['Row'], Database["public"]['Tables']["tasks"]['ComputedFields']> }; Returns: boolean
+                           },
+"try_uuid":
+{ Args: { "t": string }; Returns: string
                            },
 "update_event":
 { Args: { "p_attendees"?: (string)[],"p_data": Json,"p_event": string }; Returns: string
